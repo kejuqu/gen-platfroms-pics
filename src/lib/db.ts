@@ -58,20 +58,30 @@ export async function deleteImage(id: string): Promise<void> {
 export async function getUsage(): Promise<UsageRecord> {
   const db = await getDB()
   const record = (await db.get('usage', 'usage')) as UsageRecord | undefined
-  if (!record) return { id: 'usage', month: monthKey(new Date()), count: 0, lastReminder: 0 }
+  const currentMonth = monthKey(new Date())
+  if (!record) return { id: 'usage', month: currentMonth, count: 0, lastReminder: 0 }
+  // 跨月：计数归零，保留 lastReminder；不写库（保持读取无副作用）
+  if (record.month !== currentMonth) {
+    return { id: 'usage', month: currentMonth, count: 0, lastReminder: record.lastReminder }
+  }
   return record
 }
 
 export async function recordGeneration(now: Date = new Date()): Promise<UsageRecord> {
   const db = await getDB()
-  const current = await getUsage()
+  const currentMonth = monthKey(now)
+  // 单个 readwrite 事务内完成读+写，避免并行调用丢失递增
+  const tx = db.transaction('usage', 'readwrite')
+  const store = tx.store
+  const stored = (await store.get('usage')) as UsageRecord | undefined
   const record: UsageRecord = {
     id: 'usage',
-    month: monthKey(now),
-    count: current.month === monthKey(now) ? current.count + 1 : 1,
-    lastReminder: current.lastReminder,
+    month: currentMonth,
+    count: stored && stored.month === currentMonth ? stored.count + 1 : 1,
+    lastReminder: stored ? stored.lastReminder : 0,
   }
-  await db.put('usage', record)
+  await store.put(record)
+  await tx.done
   return record
 }
 

@@ -39,4 +39,19 @@ describe('usage 表', () => {
     const u = await getUsage()
     expect(u.lastReminder).toBeGreaterThan(0)
   })
+
+  it('并行 recordGeneration 不丢失计数', async () => {
+    await Promise.all([recordGeneration(), recordGeneration(), recordGeneration()])
+    const u = await getUsage()
+    expect(u.count).toBe(3)
+  })
+
+  it('跨月后计数归零并从 1 重新开始', async () => {
+    await recordGeneration(new Date(2026, 8, 15))
+    await recordGeneration(new Date(2026, 8, 16))
+    const u = await recordGeneration(new Date(2026, 9, 1))
+    expect(u.month).toBe('2026-10')
+    expect(u.count).toBe(1)
+    expect((await getUsage()).month).toBe('2026-10')
+  })
 })
