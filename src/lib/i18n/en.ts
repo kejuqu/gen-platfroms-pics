@@ -1,0 +1,55 @@
+import type { Dictionary } from './zh'
+
+export const en: Dictionary = {
+  app: { title: '🖼️ Device Mockup Studio' },
+  header: { usage: 'Generated {count} / {limit} this month', donate: '☕ Buy me a coffee' },
+  lang: { label: 'Language', zh: '中', en: 'EN' },
+  upload: {
+    title: 'Click to select or drag & drop wallpapers here',
+    hint: 'Supports JPG / PNG / WEBP. Images are stored locally in your browser (IndexedDB)',
+    aria: 'Upload images',
+  },
+  empty: 'No images yet — upload some wallpapers to get started～',
+  card: {
+    sellerSet: 'Download all previews ({count})',
+    pureSet: 'Download delivery set (no clock)',
+    original: 'Download original',
+    delete: 'Delete',
+    loading: 'Loading image…',
+    failed: 'Failed to read the image. It may be corrupted.',
+    retry: 'Retry',
+    previewFailed: 'Preview failed',
+    downloadPng: 'Download PNG',
+  },
+  toast: {
+    skipped: '{count} non-image file(s) skipped',
+    saveFailed: 'Failed to save "{name}": local storage is full',
+    saved: 'Saved {count} image(s)',
+    deleted: 'Deleted "{name}"',
+    deleteFailed: 'Delete failed, please retry',
+    loadFailed: 'Failed to read local data',
+    downloadFailed: 'Download failed, please retry',
+  },
+  donate: {
+    title: '☕ Buy me a coffee',
+    body: 'This tool is completely free and ad-free. If it saved you time, tips are welcome～',
+    alipay: 'Alipay',
+    wechat: 'WeChat',
+    qrPendingLine1: 'QR code',
+    qrPendingLine2: 'coming soon',
+    close: 'Close',
+  },
+  confirmDelete: {
+    title: 'Delete image',
+    description: 'Delete "{name}"? This cannot be undone.',
+    cancel: 'Cancel',
+    confirm: 'Delete',
+  },
+  devices: {
+    iphone: 'iPhone',
+    'ipad-landscape': 'iPad (landscape)',
+    'ipad-portrait': 'iPad (portrait)',
+    macbook: 'MacBook',
+    imac: 'iMac',
+  },
+}

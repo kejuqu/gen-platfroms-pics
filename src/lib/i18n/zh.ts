@@ -1,0 +1,55 @@
+export const zh = {
+  app: { title: '🖼️ 设备预览图生成工具' },
+  header: { usage: '本月已生成 {count} / {limit} 张', donate: '☕ 打赏支持' },
+  lang: { label: '语言', zh: '中', en: 'EN' },
+  upload: {
+    title: '点击选择或拖拽多张壁纸到这里',
+    hint: '支持 JPG / PNG / WEBP，图片保存在浏览器本地（IndexedDB）',
+    aria: '上传图片',
+  },
+  empty: '还没有图片，先上传几张壁纸吧～',
+  card: {
+    sellerSet: '下载全部预览图（{count} 张）',
+    pureSet: '下载交付三图（无时间）',
+    original: '下载原图',
+    delete: '删除',
+    loading: '正在加载图片…',
+    failed: '图片读取失败，可能已损坏',
+    retry: '重试',
+    previewFailed: '预览生成失败',
+    downloadPng: '下载 PNG',
+  },
+  toast: {
+    skipped: '{count} 个非图片文件已跳过',
+    saveFailed: '「{name}」保存失败：本地存储空间不足',
+    saved: '已保存 {count} 张图片',
+    deleted: '已删除「{name}」',
+    deleteFailed: '删除失败，请重试',
+    loadFailed: '本地数据读取失败',
+    downloadFailed: '下载失败，请重试',
+  },
+  donate: {
+    title: '☕ 打赏支持',
+    body: '这个工具完全免费、无广告。如果它帮你省了时间，欢迎打赏一杯咖啡～',
+    alipay: '支付宝',
+    wechat: '微信',
+    qrPendingLine1: '二维码',
+    qrPendingLine2: '待补充',
+    close: '关闭',
+  },
+  confirmDelete: {
+    title: '删除图片',
+    description: '确定删除「{name}」吗？此操作不可恢复。',
+    cancel: '取消',
+    confirm: '确认删除',
+  },
+  devices: {
+    iphone: 'iPhone',
+    'ipad-landscape': 'iPad 横屏',
+    'ipad-portrait': 'iPad 竖屏',
+    macbook: 'MacBook',
+    imac: 'iMac',
+  },
+}
+
+export type Dictionary = typeof zh
