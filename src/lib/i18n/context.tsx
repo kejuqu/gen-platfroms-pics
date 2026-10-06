@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   dictionaries,
   detectLocale,
@@ -19,16 +19,21 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue | null>(null)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === 'undefined') return 'zh'
+  // 首帧固定 'zh'，与服务端预渲染 HTML 一致，避免 hydration mismatch；
+  // 挂载后再读取本地偏好，EN 用户会有一帧中文再切换。
+  const [locale, setLocaleState] = useState<Locale>('zh')
+
+  useEffect(() => {
+    let preferred: Locale = 'zh'
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (saved === 'zh' || saved === 'en') return saved
+      if (saved === 'zh' || saved === 'en') preferred = saved
+      else preferred = detectLocale(window.navigator.language)
     } catch {
       /* localStorage 不可用时静默回退 */
     }
-    return detectLocale(window.navigator.language)
-  })
+    setLocaleState((prev) => (prev === preferred ? prev : preferred))
+  }, [])
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l)

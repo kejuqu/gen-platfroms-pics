@@ -44,7 +44,7 @@ export function translate(
   if (typeof value !== 'string') return path
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
-      value = value.replaceAll(`{${k}}`, String(v))
+      value = value.replaceAll(`{${k}}`, () => String(v))
     }
   }
   return value
