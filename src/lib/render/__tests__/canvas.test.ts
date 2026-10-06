@@ -41,6 +41,25 @@ const fakeImg = { width: 1200, height: 800, naturalWidth: 1200, naturalHeight: 8
 
 const baseOpts: RenderOptions = { showTime: true, now: new Date(2026, 9, 6, 19, 16) }
 
+describe('DEVICE_DEFS 几何约束', () => {
+  it.each(Object.values(DEVICE_DEFS))('$kind：屏幕在画布内且 bezel 2–8px', (def) => {
+    const bezel = Math.min(def.screen.x, def.screen.y)
+    expect(bezel).toBeGreaterThanOrEqual(2)
+    expect(bezel).toBeLessThanOrEqual(8)
+    expect(def.screen.x + def.screen.w).toBeLessThanOrEqual(def.width - 2)
+    expect(def.screen.y + def.screen.h).toBeLessThanOrEqual(def.height - 2)
+  })
+
+  it('macbook / imac 底座元素在画布内', () => {
+    const mb = DEVICE_DEFS.macbook
+    const mbBaseBottom = mb.screen.y + mb.screen.h + 6 + 20 // gap 6 + 底座高 20
+    expect(mbBaseBottom).toBeLessThanOrEqual(mb.height)
+    const imac = DEVICE_DEFS.imac
+    const imacStandBottom = imac.screen.y + imac.screen.h + 26 + 16 // 下巴 26 + 支架 16
+    expect(imacStandBottom).toBeLessThanOrEqual(imac.height)
+  })
+})
+
 describe('paintDevice', () => {
   it('绘制壁纸与两组时间文字（日期+时间）', () => {
     const { ctx, calls } = createStubContext()

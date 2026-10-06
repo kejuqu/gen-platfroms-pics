@@ -74,16 +74,16 @@ function drawIsland(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
 /** MacBook 键盘底座 + 摄像头 notch */
 function drawMacBookBase(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
   const { width, screen } = def
-  const baseY = screen.y + screen.h + 8
+  const baseY = screen.y + screen.h + 6
   ctx.save()
-  const grad = ctx.createLinearGradient(0, baseY, 0, baseY + 22)
+  const grad = ctx.createLinearGradient(0, baseY, 0, baseY + 20)
   grad.addColorStop(0, '#e8e8ec')
   grad.addColorStop(1, '#c8c8cf')
   ctx.fillStyle = grad
-  roundedRectPath(ctx, 6, baseY, width - 12, 22, 6)
+  roundedRectPath(ctx, 6, baseY, width - 12, 20, 6)
   ctx.fill()
   ctx.fillStyle = '#b4b4bc'
-  roundedRectPath(ctx, width / 2 - 34, baseY + 4, 68, 14, 4)
+  roundedRectPath(ctx, width / 2 - 34, baseY + 3, 68, 13, 4)
   ctx.fill()
   ctx.fillStyle = '#0a0a0c'
   roundedRectPath(ctx, screen.x + screen.w / 2 - 14, screen.y, 28, 10, 0)
@@ -96,21 +96,21 @@ function drawImacBase(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
   const { width, screen } = def
   const chinY = screen.y + screen.h
   ctx.save()
-  const grad = ctx.createLinearGradient(0, chinY, 0, chinY + 34)
+  const grad = ctx.createLinearGradient(0, chinY, 0, chinY + 26)
   grad.addColorStop(0, '#ececee')
   grad.addColorStop(1, '#d4d4d9')
   ctx.fillStyle = grad
-  ctx.fillRect(4, chinY, width - 8, 34)
+  ctx.fillRect(4, chinY, width - 8, 26)
   ctx.fillStyle = '#b9b9c0'
   ctx.beginPath()
-  ctx.arc(width / 2, chinY + 17, 5, 0, Math.PI * 2)
+  ctx.arc(width / 2, chinY + 13, 5, 0, Math.PI * 2)
   ctx.fill()
   ctx.fillStyle = '#c9c9cf'
   ctx.beginPath()
-  ctx.moveTo(width / 2 - 26, chinY + 34)
-  ctx.lineTo(width / 2 + 26, chinY + 34)
-  ctx.lineTo(width / 2 + 40, chinY + 52)
-  ctx.lineTo(width / 2 - 40, chinY + 52)
+  ctx.moveTo(width / 2 - 26, chinY + 26)
+  ctx.lineTo(width / 2 + 26, chinY + 26)
+  ctx.lineTo(width / 2 + 38, chinY + 42)
+  ctx.lineTo(width / 2 - 38, chinY + 42)
   ctx.closePath()
   ctx.fill()
   ctx.restore()
@@ -130,7 +130,11 @@ export function paintDevice(
   ctx.save()
   ctx.scale(scale, scale)
 
-  ctx.fillStyle = '#101014'
+  const frameGrad = ctx.createLinearGradient(0, 0, def.width, def.height)
+  frameGrad.addColorStop(0, '#2a2a31')
+  frameGrad.addColorStop(0.5, '#121216')
+  frameGrad.addColorStop(1, '#1e1e24')
+  ctx.fillStyle = frameGrad
   ctx.fillRect(0, 0, def.width, def.height)
 
   ctx.save()
