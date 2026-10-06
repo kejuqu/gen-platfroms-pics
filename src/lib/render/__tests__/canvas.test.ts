@@ -3,7 +3,7 @@ import { DEVICE_DEFS } from '../devices'
 import { EXPORT_SCALE, paintDevice, renderDeviceImage, type RenderOptions } from '../canvas'
 
 function createStubContext() {
-  const calls = { drawImage: 0, fillText: 0, clip: 0, fill: 0 }
+  const calls = { drawImage: 0, fillText: 0, clip: 0, fill: 0, scale: [] as number[][] }
   const ctx = {
     fillStyle: '',
     strokeStyle: '',
@@ -14,7 +14,7 @@ function createStubContext() {
     shadowBlur: 0,
     save: () => {},
     restore: () => {},
-    scale: () => {},
+    scale: (...args: number[]) => { calls.scale.push(args) },
     beginPath: () => {},
     moveTo: () => {},
     lineTo: () => {},
@@ -37,7 +37,7 @@ HTMLCanvasElement.prototype.getContext = function () {
   return createStubContext().ctx as unknown as CanvasRenderingContext2D
 } as unknown as typeof HTMLCanvasElement.prototype.getContext
 
-const fakeImg = { width: 1200, height: 800 } as unknown as HTMLImageElement
+const fakeImg = { width: 1200, height: 800, naturalWidth: 1200, naturalHeight: 800 } as unknown as HTMLImageElement
 
 const baseOpts: RenderOptions = { showTime: true, now: new Date(2026, 9, 6, 19, 16) }
 
@@ -60,6 +60,7 @@ describe('paintDevice', () => {
     const { ctx, calls } = createStubContext()
     paintDevice(ctx, DEVICE_DEFS.imac, fakeImg, baseOpts, EXPORT_SCALE)
     expect(calls.drawImage).toBe(1)
+    expect(calls.scale[0]).toEqual([EXPORT_SCALE, EXPORT_SCALE])
   })
 })
 

@@ -34,6 +34,8 @@ function drawCover(
   img: CanvasImageSource & { width: number; height: number },
   x: number, y: number, w: number, h: number,
 ): void {
+  // 图片未解码或零尺寸时直接跳过，避免 Infinity/NaN 几何与 drawImage 抛错
+  if (!(img as HTMLImageElement).naturalWidth || !(img as HTMLImageElement).naturalHeight) return
   const s = Math.max(w / img.width, h / img.height)
   const dw = img.width * s
   const dh = img.height * s
