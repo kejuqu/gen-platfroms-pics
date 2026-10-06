@@ -1501,7 +1501,7 @@ export function ImageCard({
 }
 ```
 
-注意：`thumbUrl`（objectURL）不再需要——原图 blob 经由 `blobToImage` 解码成功后用 `img.src` 做缩略图即可。把 ready 分支的 `src={thumbUrl}` 改为 `src={img.src}`，并删除 `thumbUrl` 的 useMemo/useEffect。上面代码中 `src={thumbUrl}` 为笔误，实施时改为 `src={img!.src}`（ready 为 true 时 img 非空）。
+说明：原实现用 `URL.createObjectURL` 做缩略图，裂图风险即来源于 `<img>` 直接指向未解码的 blob。现改为 `blobToImage` 解码成功后才挂载 `<img src={img.src}>`，失败路径根本不会出现裂图。
 
 - [ ] **Step 3: 验证构建 + 全量测试**
 
