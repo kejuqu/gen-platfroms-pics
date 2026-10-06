@@ -10,7 +10,11 @@ export interface ToastItem {
 export function Toasts({ items }: { items: ToastItem[] }) {
   if (items.length === 0) return null
   return (
-    <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2">
+    <div
+      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center gap-2"
+      role="status"
+      aria-live="polite"
+    >
       {items.map((t) => (
         <div
           key={t.id}

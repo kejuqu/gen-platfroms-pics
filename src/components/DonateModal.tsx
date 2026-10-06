@@ -1,7 +1,7 @@
 // src/components/DonateModal.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function QrImage({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false)
@@ -26,10 +26,25 @@ function QrImage({ src, alt }: { src: string; alt: string }) {
 }
 
 export function DonateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    closeRef.current?.focus()
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
   if (!open) return null
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="打赏支持"
       onClick={onClose}
     >
       <div
@@ -51,6 +66,7 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
           </div>
         </div>
         <button
+          ref={closeRef}
           onClick={onClose}
           className="mt-6 w-full rounded-full bg-gradient-to-r from-brand-500 to-rose-500 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
         >

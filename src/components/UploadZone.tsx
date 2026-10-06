@@ -24,6 +24,15 @@ export function UploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
         handleFiles(e.dataTransfer.files)
       }}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          inputRef.current?.click()
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="上传图片"
       className={`cursor-pointer rounded-card border-2 border-dashed px-6 py-12 text-center transition ${
         dragging
           ? 'border-brand-500 bg-brand-50'
