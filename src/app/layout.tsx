@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { I18nProvider } from '@/lib/i18n/context'
+import { Toaster } from '@/components/ui/sonner'
+import { AuroraBackground } from '@/components/AuroraBackground'
 
 export const metadata: Metadata = {
   title: '设备预览图生成工具',
@@ -9,7 +12,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <AuroraBackground />
+        <I18nProvider>{children}</I18nProvider>
+        <Toaster />
+      </body>
     </html>
   )
 }

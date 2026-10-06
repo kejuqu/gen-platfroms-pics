@@ -36,3 +36,82 @@
 body {
   @apply bg-background text-foreground antialiased;
 }
+
+/* ===== 极光动态背景 ===== */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #fffbf7;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.5;
+  will-change: transform;
+}
+
+.aurora-1 {
+  width: 60vmax;
+  height: 60vmax;
+  left: -18vmax;
+  top: -22vmax;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.85), transparent 62%);
+  animation: aurora-drift-1 46s ease-in-out infinite alternate;
+}
+
+.aurora-2 {
+  width: 55vmax;
+  height: 55vmax;
+  right: -20vmax;
+  top: -12vmax;
+  background: radial-gradient(circle, rgba(196, 181, 253, 0.8), transparent 62%);
+  animation: aurora-drift-2 54s ease-in-out infinite alternate;
+}
+
+.aurora-3 {
+  width: 50vmax;
+  height: 50vmax;
+  left: 8vmax;
+  bottom: -24vmax;
+  background: radial-gradient(circle, rgba(249, 168, 212, 0.75), transparent 62%);
+  animation: aurora-drift-3 50s ease-in-out infinite alternate;
+}
+
+.aurora-4 {
+  width: 45vmax;
+  height: 45vmax;
+  right: 4vmax;
+  bottom: -18vmax;
+  background: radial-gradient(circle, rgba(253, 186, 116, 0.75), transparent 62%);
+  animation: aurora-drift-4 42s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift-1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(14vw, 9vh) scale(1.18); }
+}
+
+@keyframes aurora-drift-2 {
+  from { transform: translate(0, 0) scale(1.1); }
+  to { transform: translate(-12vw, 12vh) scale(0.95); }
+}
+
+@keyframes aurora-drift-3 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(10vw, -10vh) scale(1.12); }
+}
+
+@keyframes aurora-drift-4 {
+  from { transform: translate(0, 0) scale(0.95); }
+  to { transform: translate(-9vw, -8vh) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob {
+    animation: none;
+  }
+}
