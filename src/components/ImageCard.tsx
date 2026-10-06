@@ -1,7 +1,7 @@
 // src/components/ImageCard.tsx
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { StoredImage } from '@/lib/db'
 import { PURE_DEVICES, SELLER_DEVICES } from '@/lib/tokens'
 import { downloadBlob } from '@/lib/download'
@@ -21,6 +21,12 @@ export function ImageCard({
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [error, setError] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
 
   const thumbUrl = useMemo(() => URL.createObjectURL(image.blob), [image.blob])
   useEffect(() => () => URL.revokeObjectURL(thumbUrl), [thumbUrl])
@@ -48,7 +54,7 @@ export function ImageCard({
     setBusy(true)
     try {
       await fn()
-      onGenerated()
+      if (mounted.current) onGenerated()
     } catch {
       alert('下载失败，请重试')
     } finally {

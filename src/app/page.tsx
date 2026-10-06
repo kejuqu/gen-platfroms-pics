@@ -18,11 +18,24 @@ export default function Page() {
   const [donateOpen, setDonateOpen] = useState(false)
   const [toasts, setToasts] = useState<ToastItem[]>([])
   const toastId = useRef(0)
+  const toastTimers = useRef<Set<number>>(new Set())
 
   const toast = useCallback((message: string, tone: ToastItem['tone'] = 'info') => {
     const id = ++toastId.current
     setToasts((ts) => [...ts, { id, message, tone }])
-    setTimeout(() => setToasts((ts) => ts.filter((t) => t.id !== id)), 3500)
+    const timer = window.setTimeout(() => {
+      toastTimers.current.delete(timer)
+      setToasts((ts) => ts.filter((t) => t.id !== id))
+    }, 3500)
+    toastTimers.current.add(timer)
+  }, [])
+
+  useEffect(() => {
+    const timers = toastTimers.current
+    return () => {
+      timers.forEach((t) => clearTimeout(t))
+      timers.clear()
+    }
   }, [])
 
   const refreshUsage = useCallback(async () => {
@@ -62,9 +75,13 @@ export default function Page() {
   }
 
   async function handleDelete(image: StoredImage) {
-    await deleteImage(image.id)
-    setImages(await getAllImages())
-    toast(`已删除「${image.name}」`)
+    try {
+      await deleteImage(image.id)
+      setImages(await getAllImages())
+      toast(`已删除「${image.name}」`)
+    } catch {
+      toast('删除失败，请重试', 'error')
+    }
   }
 
   // 每次下载动作计数 +1；超限且到提醒期则弹打赏
