@@ -2,12 +2,22 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import type { StoredImage } from '@/lib/db'
+import type { DeviceKind } from '@/lib/tokens'
 import { PURE_DEVICES, SELLER_DEVICES } from '@/lib/tokens'
 import { downloadBlob } from '@/lib/download'
 import { blobToImage, downloadDeviceImage, downloadDeviceSet } from '@/lib/generate'
 import { DEVICE_DEFS } from '@/lib/render/devices'
 import { renderDeviceImage } from '@/lib/render/canvas'
+import { Button } from '@/components/ui/button'
+import { DeleteImageButton } from '@/components/DeleteImageButton'
+import { useI18n } from '@/lib/i18n/context'
+import { dateLocale } from '@/lib/i18n'
+
+type PreviewItem =
+  | { kind: 'ok'; kindKey: DeviceKind; url: string }
+  | { kind: 'err'; kindKey: DeviceKind }
 
 export function ImageCard({
   image,
@@ -18,9 +28,11 @@ export function ImageCard({
   onDelete: () => void
   onGenerated: () => void
 }) {
+  const { t, locale } = useI18n()
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [error, setError] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
 
   const mounted = useRef(true)
   useEffect(() => {
@@ -28,24 +40,25 @@ export function ImageCard({
     return () => { mounted.current = false }
   }, [])
 
-  const thumbUrl = useMemo(() => URL.createObjectURL(image.blob), [image.blob])
-  useEffect(() => () => URL.revokeObjectURL(thumbUrl), [thumbUrl])
-
   useEffect(() => {
     let cancelled = false
     blobToImage(image.blob)
       .then((i) => { if (!cancelled) setImg(i) })
       .catch(() => { if (!cancelled) setError(true) })
     return () => { cancelled = true }
-  }, [image.blob])
+  }, [image.blob, retryCount])
 
-  // 预览 canvases：每个设备一张，当前时间
-  const previews = useMemo(() => {
+  // 预览：每个设备独立 try/catch，单设备失败不影响其他
+  const previews = useMemo<PreviewItem[]>(() => {
     if (!img) return []
     const now = new Date()
     return SELLER_DEVICES.map((meta) => {
-      const canvas = renderDeviceImage(img, meta.kind, { showTime: true, now, scale: 1 })
-      return { meta, url: canvas.toDataURL('image/png') }
+      try {
+        const canvas = renderDeviceImage(img, meta.kind, { showTime: true, now, scale: 1 })
+        return { kind: 'ok', kindKey: meta.kind, url: canvas.toDataURL('image/png') }
+      } catch {
+        return { kind: 'err', kindKey: meta.kind }
+      }
     })
   }, [img])
 
@@ -56,88 +69,136 @@ export function ImageCard({
       await fn()
       if (mounted.current) onGenerated()
     } catch {
-      alert('下载失败，请重试')
+      if (mounted.current) toast.error(t('toast.downloadFailed'))
     } finally {
-      setBusy(false)
+      if (mounted.current) setBusy(false)
     }
   }
 
+  function handleRetry() {
+    setImg(null)
+    setError(false)
+    setRetryCount((c) => c + 1)
+  }
+
+  // ===== 失败态：占位 + 重试 + 删除（绝不渲染裂图） =====
   if (error) {
     return (
       <div className="rounded-card bg-white p-5 shadow-card">
-        <p className="text-sm text-rose-600">「{image.name}」图片读取失败，可能已损坏。</p>
-        <button onClick={onDelete} className="mt-3 text-xs text-ink/50 underline">删除记录</button>
+        <p className="text-sm font-semibold text-ink">{image.name}</p>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xl">
+            ⚠️
+          </div>
+          <p className="text-sm text-rose-600">{t('card.failed')}</p>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <Button variant="outline" size="sm" className="rounded-full" onClick={handleRetry}>
+            {t('card.retry')}
+          </Button>
+          <DeleteImageButton name={image.name} onConfirm={onDelete} triggerVariant="destructive" />
+        </div>
       </div>
     )
   }
+
+  const ready = img !== null
 
   return (
     <div className="rounded-card bg-white p-5 shadow-card">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={thumbUrl} alt={image.name} className="h-14 w-14 rounded-lg object-cover" />
+          {ready ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={img.src}
+              alt={image.name}
+              className="h-14 w-14 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="h-14 w-14 animate-pulse rounded-lg bg-brand-100" aria-hidden="true" />
+          )}
           <div>
             <p className="max-w-[16rem] truncate text-sm font-semibold text-ink">{image.name}</p>
-            <p className="text-xs text-ink/50">{new Date(image.createdAt).toLocaleString('zh-CN')}</p>
+            <p className="text-xs text-ink/50">
+              {new Date(image.createdAt).toLocaleString(dateLocale(locale))}
+            </p>
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            disabled={busy || !img}
+          <Button
+            size="sm"
+            disabled={busy || !ready}
+            className="rounded-full"
             onClick={() => runDownload(() => downloadDeviceSet(image.blob, SELLER_DEVICES, 'seller', image.name))}
-            className="rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-600 disabled:opacity-50"
           >
-            下载全部预览图（5 张）
-          </button>
-          <button
-            disabled={busy || !img}
+            {t('card.sellerSet', { count: SELLER_DEVICES.length })}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={busy || !ready}
+            className="rounded-full bg-rose-500 text-white hover:bg-rose-600"
             onClick={() => runDownload(() => downloadDeviceSet(image.blob, PURE_DEVICES, 'pure', image.name))}
-            className="rounded-full bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:opacity-50"
           >
-            下载交付三图（无时间）
-          </button>
-          <button
+            {t('card.pureSet')}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-full"
             onClick={() => downloadBlob(image.blob, image.name)}
-            className="rounded-full border border-brand-300 px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-50"
           >
-            下载原图
-          </button>
-          <button
-            onClick={onDelete}
-            className="rounded-full px-3 py-1.5 text-xs text-ink/40 transition hover:bg-rose-50 hover:text-rose-600"
-          >
-            删除
-          </button>
+            {t('card.original')}
+          </Button>
+          <DeleteImageButton name={image.name} onConfirm={onDelete} />
         </div>
       </div>
 
       <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
-        {previews.map(({ meta, url }) => (
-          <figure key={meta.kind} className="group relative shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={url}
-              alt={`${meta.label} 预览`}
-              style={{ width: DEVICE_DEFS[meta.kind].width, height: DEVICE_DEFS[meta.kind].height }}
-              className="rounded-thumb shadow-card"
-            />
-            <figcaption className="mt-1.5 text-center text-xs text-ink/60">{meta.label}</figcaption>
-            <button
-              disabled={busy || !img}
-              onClick={() =>
-                runDownload(async () => {
-                  if (!img) return
-                  await downloadDeviceImage(img, meta, 'seller', image.name, true)
-                })
-              }
-              className="absolute inset-x-0 top-0 rounded-thumb bg-ink/55 py-1.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-0"
-            >
-              下载 PNG
-            </button>
-          </figure>
-        ))}
-        {!img && <p className="py-10 text-sm text-ink/40">正在加载图片…</p>}
+        {previews.map((p) => {
+          const meta = SELLER_DEVICES.find((m) => m.kind === p.kindKey)!
+          if (p.kind === 'err') {
+            return (
+              <div
+                key={p.kindKey}
+                style={{ width: DEVICE_DEFS[p.kindKey].width, height: DEVICE_DEFS[p.kindKey].height }}
+                className="flex shrink-0 items-center justify-center rounded-thumb bg-brand-50 text-xs text-ink/40"
+              >
+                {t('card.previewFailed')}
+              </div>
+            )
+          }
+          return (
+            <figure key={p.kindKey} className="group relative shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={p.url}
+                alt={t(`devices.${p.kindKey}`)}
+                style={{ width: DEVICE_DEFS[p.kindKey].width, height: DEVICE_DEFS[p.kindKey].height }}
+                className="rounded-thumb shadow-card"
+              />
+              <figcaption className="mt-1.5 text-center text-xs text-ink/60">
+                {t(`devices.${p.kindKey}`)}
+              </figcaption>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={busy || !ready}
+                onClick={() =>
+                  runDownload(async () => {
+                    if (!img) return
+                    await downloadDeviceImage(img, meta, 'seller', image.name, true)
+                  })
+                }
+                className="absolute inset-x-0 top-0 rounded-thumb bg-ink/55 text-white hover:bg-ink/70 hover:text-white"
+              >
+                {t('card.downloadPng')}
+              </Button>
+            </figure>
+          )
+        })}
+        {!ready && <p className="py-10 text-sm text-ink/40">{t('card.loading')}</p>}
       </div>
     </div>
   )
