@@ -2,12 +2,14 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useI18n } from '@/lib/i18n/context'
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
 
 export function UploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
+  const { t } = useI18n()
 
   function handleFiles(fileList: FileList | null) {
     if (!fileList) return
@@ -32,7 +34,7 @@ export function UploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
       }}
       role="button"
       tabIndex={0}
-      aria-label="上传图片"
+      aria-label={t('upload.aria')}
       className={`cursor-pointer rounded-card border-2 border-dashed px-6 py-12 text-center transition ${
         dragging
           ? 'border-brand-500 bg-brand-50'
@@ -51,8 +53,8 @@ export function UploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
         }}
       />
       <div className="text-4xl">📤</div>
-      <p className="mt-3 font-medium text-ink">点击选择或拖拽多张壁纸到这里</p>
-      <p className="mt-1 text-xs text-ink/50">支持 JPG / PNG / WEBP，图片保存在浏览器本地（IndexedDB）</p>
+      <p className="mt-3 font-medium text-ink">{t('upload.title')}</p>
+      <p className="mt-1 text-xs text-ink/50">{t('upload.hint')}</p>
     </div>
   )
 }

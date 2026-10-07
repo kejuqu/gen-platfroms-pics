@@ -1,16 +1,26 @@
 // src/components/DonateModal.tsx
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useI18n } from '@/lib/i18n/context'
 
 function QrImage({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false)
+  const { t } = useI18n()
   if (failed) {
     return (
-      <div className="flex h-44 w-44 items-center justify-center rounded-xl border-2 border-dashed border-brand-300 bg-brand-50 text-xs text-brand-700">
-        {alt}二维码
-        <br />
-        待补充
+      <div className="flex h-44 w-44 flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-300 bg-brand-50 text-xs text-brand-700">
+        <span>{t('donate.qrPendingLine1')}</span>
+        <span>{t('donate.qrPendingLine2')}</span>
       </div>
     )
   }
@@ -20,59 +30,36 @@ function QrImage({ src, alt }: { src: string; alt: string }) {
       src={src}
       alt={alt}
       onError={() => setFailed(true)}
-      className="h-44 w-44 rounded-xl border border-brand-100 object-contain"
+      className="h-44 w-44 rounded-xl border border-brand-100 bg-white object-contain"
     />
   )
 }
 
 export function DonateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const closeRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    closeRef.current?.focus()
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
-  if (!open) return null
+  const { t } = useI18n()
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="打赏支持"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-card bg-white p-6 shadow-card-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-bold text-ink">☕ 打赏支持</h2>
-        <p className="mt-1 text-sm text-ink/60">
-          这个工具完全免费、无广告。如果它帮你省了时间，欢迎打赏一杯咖啡～
-        </p>
-        <div className="mt-5 flex items-start justify-center gap-6">
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t('donate.title')}</DialogTitle>
+          <DialogDescription>{t('donate.body')}</DialogDescription>
+        </DialogHeader>
+        <div className="flex items-start justify-center gap-6">
           <div className="text-center">
-            <QrImage src="/donate/alipay.png" alt="支付宝" />
-            <p className="mt-2 text-sm font-medium text-ink">支付宝</p>
+            <QrImage src="/donate/alipay.png" alt={t('donate.alipay')} />
+            <p className="mt-2 text-sm font-medium text-ink">{t('donate.alipay')}</p>
           </div>
           <div className="text-center">
-            <QrImage src="/donate/wechat.png" alt="微信" />
-            <p className="mt-2 text-sm font-medium text-ink">微信</p>
+            <QrImage src="/donate/wechat.png" alt={t('donate.wechat')} />
+            <p className="mt-2 text-sm font-medium text-ink">{t('donate.wechat')}</p>
           </div>
         </div>
-        <button
-          ref={closeRef}
-          onClick={onClose}
-          className="mt-6 w-full rounded-full bg-gradient-to-r from-brand-500 to-rose-500 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
-        >
-          关闭
-        </button>
-      </div>
-    </div>
+        <DialogClose asChild>
+          <Button className="w-full rounded-full bg-gradient-to-r from-brand-500 to-rose-500 text-white hover:from-brand-600 hover:to-rose-600">
+            {t('donate.close')}
+          </Button>
+        </DialogClose>
+      </DialogContent>
+    </Dialog>
   )
 }
