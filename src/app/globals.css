@@ -43,75 +43,106 @@ body {
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  background: #fffbf7;
+  /* 深一点的暖底，让光斑有对比度 */
+  background: linear-gradient(160deg, #fdf6ee 0%, #faf1f2 50%, #f3effc 100%);
 }
 
 .aurora-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(90px);
-  opacity: 0.5;
+  filter: blur(70px);
   will-change: transform;
 }
 
+/* 极光绿（主色调，北极光标志性颜色） */
 .aurora-1 {
-  width: 60vmax;
-  height: 60vmax;
+  width: 70vmax;
+  height: 45vmax;
   left: -18vmax;
-  top: -22vmax;
-  background: radial-gradient(circle, rgba(103, 232, 249, 0.85), transparent 62%);
-  animation: aurora-drift-1 46s ease-in-out infinite alternate;
+  top: -16vmax;
+  background: radial-gradient(ellipse, rgba(16, 185, 129, 0.5), rgba(45, 212, 191, 0.25) 55%, transparent 72%);
+  animation: aurora-drift-1 32s ease-in-out infinite alternate;
 }
 
+/* 极光青蓝 */
 .aurora-2 {
-  width: 55vmax;
-  height: 55vmax;
+  width: 60vmax;
+  height: 50vmax;
   right: -20vmax;
   top: -12vmax;
-  background: radial-gradient(circle, rgba(196, 181, 253, 0.8), transparent 62%);
-  animation: aurora-drift-2 54s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse, rgba(34, 211, 238, 0.5), rgba(59, 130, 246, 0.22) 55%, transparent 72%);
+  animation: aurora-drift-2 40s ease-in-out infinite alternate;
 }
 
+/* 紫罗兰 */
 .aurora-3 {
-  width: 50vmax;
+  width: 55vmax;
   height: 50vmax;
-  left: 8vmax;
+  left: 4vmax;
   bottom: -24vmax;
-  background: radial-gradient(circle, rgba(249, 168, 212, 0.75), transparent 62%);
-  animation: aurora-drift-3 50s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse, rgba(139, 92, 246, 0.42), rgba(217, 70, 239, 0.2) 55%, transparent 72%);
+  animation: aurora-drift-3 36s ease-in-out infinite alternate;
 }
 
+/* 品牌橙 + 玫红 */
 .aurora-4 {
-  width: 45vmax;
+  width: 50vmax;
   height: 45vmax;
-  right: 4vmax;
+  right: 0;
   bottom: -18vmax;
-  background: radial-gradient(circle, rgba(253, 186, 116, 0.75), transparent 62%);
-  animation: aurora-drift-4 42s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse, rgba(249, 115, 22, 0.38), rgba(244, 63, 94, 0.22) 55%, transparent 72%);
+  animation: aurora-drift-4 30s ease-in-out infinite alternate;
+}
+
+/* 顶部贯穿光带：模拟极光的帷幕感 */
+.aurora-curtain {
+  position: absolute;
+  left: -20%;
+  top: -30%;
+  width: 140%;
+  height: 70%;
+  background: linear-gradient(
+    100deg,
+    transparent 15%,
+    rgba(52, 211, 153, 0.28) 32%,
+    rgba(34, 211, 238, 0.22) 48%,
+    rgba(167, 139, 250, 0.28) 65%,
+    transparent 82%
+  );
+  filter: blur(60px);
+  transform: rotate(-8deg);
+  animation: aurora-sway 44s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
 @keyframes aurora-drift-1 {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(14vw, 9vh) scale(1.18); }
+  from { transform: translate(0, 0) rotate(0deg) scale(1); }
+  to { transform: translate(12vw, 8vh) rotate(6deg) scale(1.15); }
 }
 
 @keyframes aurora-drift-2 {
-  from { transform: translate(0, 0) scale(1.1); }
-  to { transform: translate(-12vw, 12vh) scale(0.95); }
+  from { transform: translate(0, 0) rotate(0deg) scale(1.05); }
+  to { transform: translate(-10vw, 10vh) rotate(-5deg) scale(0.95); }
 }
 
 @keyframes aurora-drift-3 {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(10vw, -10vh) scale(1.12); }
+  from { transform: translate(0, 0) rotate(0deg) scale(1); }
+  to { transform: translate(9vw, -9vh) rotate(4deg) scale(1.1); }
 }
 
 @keyframes aurora-drift-4 {
-  from { transform: translate(0, 0) scale(0.95); }
-  to { transform: translate(-9vw, -8vh) scale(1.15); }
+  from { transform: translate(0, 0) rotate(0deg) scale(0.95); }
+  to { transform: translate(-8vw, -7vh) rotate(-6deg) scale(1.12); }
+}
+
+@keyframes aurora-sway {
+  from { transform: rotate(-8deg) translateX(-4%); opacity: 0.8; }
+  to { transform: rotate(-4deg) translateX(4%); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-blob {
+  .aurora-blob,
+  .aurora-curtain {
     animation: none;
   }
 }
