@@ -16,18 +16,18 @@ export function Header({
   const { locale, setLocale, t } = useI18n()
 
   return (
-    <header className="sticky top-0 z-40 border-b border-brand-100/60 bg-surface/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-bold text-ink">{t('app.title')}</h1>
-          <p className="text-xs text-ink/50">
+          <h1 className="truncate text-lg font-bold text-foreground">{t('app.title')}</h1>
+          <p className="hidden text-xs text-muted-foreground sm:block">
             {t('header.usage', { count: usageCount, limit: USAGE_LIMIT })}
           </p>
         </div>
         <div
           role="group"
           aria-label={t('lang.label')}
-          className="flex shrink-0 items-center rounded-full border border-brand-200 bg-white/70 p-0.5 text-xs font-semibold"
+          className="flex shrink-0 items-center rounded-full border border-white/15 bg-white/5 p-0.5 text-xs font-semibold"
         >
           {(['zh', 'en'] as const).map((l) => (
             <button
@@ -37,7 +37,7 @@ export function Header({
               aria-pressed={locale === l}
               className={cn(
                 'rounded-full px-2.5 py-1 transition',
-                locale === l ? 'bg-brand-500 text-white' : 'text-ink/60 hover:text-ink',
+                locale === l ? 'bg-brand-500 text-white' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               {t(`lang.${l}`)}

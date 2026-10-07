@@ -18,7 +18,7 @@ function QrImage({ src, alt }: { src: string; alt: string }) {
   const { t } = useI18n()
   if (failed) {
     return (
-      <div className="flex h-44 w-44 flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-300 bg-brand-50 text-xs text-brand-700">
+      <div className="flex h-44 w-44 flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/40 bg-primary/10 text-xs text-primary">
         <span>{t('donate.qrPendingLine1')}</span>
         <span>{t('donate.qrPendingLine2')}</span>
       </div>
@@ -30,7 +30,7 @@ function QrImage({ src, alt }: { src: string; alt: string }) {
       src={src}
       alt={alt}
       onError={() => setFailed(true)}
-      className="h-44 w-44 rounded-xl border border-brand-100 bg-white object-contain"
+      className="h-44 w-44 rounded-xl border border-white/10 bg-white object-contain"
     />
   )
 }
@@ -47,11 +47,11 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
         <div className="flex items-start justify-center gap-6">
           <div className="text-center">
             <QrImage src="/donate/alipay.png" alt={t('donate.alipay')} />
-            <p className="mt-2 text-sm font-medium text-ink">{t('donate.alipay')}</p>
+            <p className="mt-2 text-sm font-medium text-card-foreground">{t('donate.alipay')}</p>
           </div>
           <div className="text-center">
             <QrImage src="/donate/wechat.png" alt={t('donate.wechat')} />
-            <p className="mt-2 text-sm font-medium text-ink">{t('donate.wechat')}</p>
+            <p className="mt-2 text-sm font-medium text-card-foreground">{t('donate.wechat')}</p>
           </div>
         </div>
         <DialogClose asChild>

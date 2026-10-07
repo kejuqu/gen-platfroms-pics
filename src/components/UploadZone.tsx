@@ -37,8 +37,8 @@ export function UploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
       aria-label={t('upload.aria')}
       className={`cursor-pointer rounded-card border-2 border-dashed px-6 py-12 text-center transition ${
         dragging
-          ? 'border-brand-500 bg-brand-50'
-          : 'border-brand-300 bg-white/60 hover:border-brand-400 hover:bg-brand-50/60'
+          ? 'border-primary bg-primary/10'
+          : 'border-white/20 bg-card/60 hover:border-primary/60 hover:bg-white/5'
       }`}
     >
       <input
@@ -53,8 +53,8 @@ export function UploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
         }}
       />
       <div className="text-4xl">📤</div>
-      <p className="mt-3 font-medium text-ink">{t('upload.title')}</p>
-      <p className="mt-1 text-xs text-ink/50">{t('upload.hint')}</p>
+      <p className="mt-3 font-medium text-foreground">{t('upload.title')}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t('upload.hint')}</p>
     </div>
   )
 }

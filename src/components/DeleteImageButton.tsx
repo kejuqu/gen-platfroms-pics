@@ -36,7 +36,7 @@ export function DeleteImageButton({
           size="sm"
           className={
             triggerVariant === 'ghost'
-              ? 'rounded-full px-3 text-xs text-ink/40 hover:bg-rose-50 hover:text-rose-600'
+              ? 'rounded-full px-3 text-xs text-muted-foreground hover:bg-rose-500/10 hover:text-rose-400'
               : 'rounded-full'
           }
         >

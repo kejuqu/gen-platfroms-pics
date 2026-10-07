@@ -40,6 +40,15 @@ export function ImageCard({
     return () => { mounted.current = false }
   }, [])
 
+  // 缩略图 objectURL 在 effect 中创建：StrictMode 双挂载时 cleanup 会回收 URL，
+  // useMemo 创建的 URL 不会重建（裂图根因），useEffect 则会二次创建新 URL
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
+  useEffect(() => {
+    const url = URL.createObjectURL(image.blob)
+    setThumbUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [image.blob])
+
   useEffect(() => {
     let cancelled = false
     blobToImage(image.blob)
@@ -84,10 +93,10 @@ export function ImageCard({
   // ===== 失败态：占位 + 重试 + 删除（绝不渲染裂图） =====
   if (error) {
     return (
-      <div className="rounded-card bg-white p-5 shadow-card">
-        <p className="text-sm font-semibold text-ink">{image.name}</p>
+      <div className="rounded-card bg-card p-5 shadow-card">
+        <p className="text-sm font-semibold text-card-foreground">{image.name}</p>
         <div className="mt-3 flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xl">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-xl">
             ⚠️
           </div>
           <p className="text-sm text-rose-600">{t('card.failed')}</p>
@@ -105,27 +114,27 @@ export function ImageCard({
   const ready = img !== null
 
   return (
-    <div className="rounded-card bg-white p-5 shadow-card">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {ready ? (
+    <div className="rounded-card bg-card p-5 shadow-card">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {ready && thumbUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={img.src}
+              src={thumbUrl}
               alt={image.name}
               className="h-14 w-14 rounded-lg object-cover"
             />
           ) : (
-            <div className="h-14 w-14 animate-pulse rounded-lg bg-brand-100" aria-hidden="true" />
+            <div className="h-14 w-14 animate-pulse rounded-lg bg-white/10" aria-hidden="true" />
           )}
           <div>
-            <p className="max-w-[16rem] truncate text-sm font-semibold text-ink">{image.name}</p>
-            <p className="text-xs text-ink/50">
+            <p className="max-w-[16rem] truncate text-sm font-semibold text-card-foreground">{image.name}</p>
+            <p className="text-xs text-muted-foreground">
               {new Date(image.createdAt).toLocaleString(dateLocale(locale))}
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
             disabled={busy || !ready}
@@ -155,7 +164,7 @@ export function ImageCard({
         </div>
       </div>
 
-      <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
+      <div className="mt-4 flex flex-wrap gap-4">
         {previews.map((p) => {
           const meta = SELLER_DEVICES.find((m) => m.kind === p.kindKey)!
           if (p.kind === 'err') {
@@ -163,7 +172,7 @@ export function ImageCard({
               <div
                 key={p.kindKey}
                 style={{ width: DEVICE_DEFS[p.kindKey].width, height: DEVICE_DEFS[p.kindKey].height }}
-                className="flex shrink-0 items-center justify-center rounded-thumb bg-brand-50 text-xs text-ink/40"
+                className="flex shrink-0 items-center justify-center rounded-thumb bg-white/5 text-xs text-muted-foreground"
               >
                 {t('card.previewFailed')}
               </div>
@@ -178,7 +187,7 @@ export function ImageCard({
                 style={{ width: DEVICE_DEFS[p.kindKey].width, height: DEVICE_DEFS[p.kindKey].height }}
                 className="rounded-thumb shadow-card"
               />
-              <figcaption className="mt-1.5 text-center text-xs text-ink/60">
+              <figcaption className="mt-1.5 text-center text-xs text-muted-foreground">
                 {t(`devices.${p.kindKey}`)}
               </figcaption>
               <Button
@@ -198,7 +207,7 @@ export function ImageCard({
             </figure>
           )
         })}
-        {!ready && <p className="py-10 text-sm text-ink/40">{t('card.loading')}</p>}
+        {!ready && <p className="py-10 text-sm text-muted-foreground">{t('card.loading')}</p>}
       </div>
     </div>
   )

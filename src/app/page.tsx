@@ -94,7 +94,7 @@ export default function Page() {
           </div>
         )}
         {images.length === 0 && (
-          <p className="py-10 text-center text-sm text-ink/40">{t('empty')}</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t('empty')}</p>
         )}
       </main>
       <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />

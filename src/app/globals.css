@@ -33,68 +33,91 @@
   --radius: 0.75rem;
 }
 
+/* ===== 暗黑主题（极光背景配套） ===== */
+.dark {
+  --background: 150 18% 5%;
+  --foreground: 30 20% 92%;
+  --card: 150 12% 9%;
+  --card-foreground: 30 20% 92%;
+  --popover: 150 12% 9%;
+  --popover-foreground: 30 20% 92%;
+  --primary: 25 95% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 25 40% 16%;
+  --secondary-foreground: 33 100% 88%;
+  --muted: 150 8% 16%;
+  --muted-foreground: 30 8% 62%;
+  --accent: 350 60% 18%;
+  --accent-foreground: 350 90% 85%;
+  --destructive: 350 89% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 30 10% 22%;
+  --input: 30 10% 26%;
+  --ring: 25 95% 55%;
+}
+
 body {
   @apply bg-background text-foreground antialiased;
 }
 
-/* ===== 极光动态背景 ===== */
+/* ===== 极光动态背景（暗黑底 + 绿/红极光） ===== */
 .aurora {
   position: fixed;
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  /* 深一点的暖底，让光斑有对比度 */
-  background: linear-gradient(160deg, #fdf6ee 0%, #faf1f2 50%, #f3effc 100%);
+  /* 暗黑底：黑里透一点绿 */
+  background: linear-gradient(160deg, #040806 0%, #060a07 50%, #0a0709 100%);
 }
 
 .aurora-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
+  filter: blur(80px);
   will-change: transform;
 }
 
-/* 极光绿（主色调，北极光标志性颜色） */
+/* 极光绿（主色调） */
 .aurora-1 {
   width: 70vmax;
   height: 45vmax;
   left: -18vmax;
   top: -16vmax;
-  background: radial-gradient(ellipse, rgba(16, 185, 129, 0.5), rgba(45, 212, 191, 0.25) 55%, transparent 72%);
+  background: radial-gradient(ellipse, rgba(16, 185, 129, 0.4), rgba(45, 212, 191, 0.16) 55%, transparent 72%);
   animation: aurora-drift-1 32s ease-in-out infinite alternate;
 }
 
-/* 极光青蓝 */
+/* 极光红（玫红） */
 .aurora-2 {
   width: 60vmax;
   height: 50vmax;
   right: -20vmax;
   top: -12vmax;
-  background: radial-gradient(ellipse, rgba(34, 211, 238, 0.5), rgba(59, 130, 246, 0.22) 55%, transparent 72%);
+  background: radial-gradient(ellipse, rgba(244, 63, 94, 0.35), rgba(249, 115, 22, 0.14) 55%, transparent 72%);
   animation: aurora-drift-2 40s ease-in-out infinite alternate;
 }
 
-/* 紫罗兰 */
+/* 深绿（底部） */
 .aurora-3 {
   width: 55vmax;
   height: 50vmax;
   left: 4vmax;
   bottom: -24vmax;
-  background: radial-gradient(ellipse, rgba(139, 92, 246, 0.42), rgba(217, 70, 239, 0.2) 55%, transparent 72%);
+  background: radial-gradient(ellipse, rgba(5, 150, 105, 0.32), rgba(16, 185, 129, 0.12) 55%, transparent 72%);
   animation: aurora-drift-3 36s ease-in-out infinite alternate;
 }
 
-/* 品牌橙 + 玫红 */
+/* 深红（底部） */
 .aurora-4 {
   width: 50vmax;
   height: 45vmax;
   right: 0;
   bottom: -18vmax;
-  background: radial-gradient(ellipse, rgba(249, 115, 22, 0.38), rgba(244, 63, 94, 0.22) 55%, transparent 72%);
+  background: radial-gradient(ellipse, rgba(190, 18, 60, 0.35), rgba(244, 63, 94, 0.13) 55%, transparent 72%);
   animation: aurora-drift-4 30s ease-in-out infinite alternate;
 }
 
-/* 顶部贯穿光带：模拟极光的帷幕感 */
+/* 顶部贯穿光带：绿→青，模拟极光帷幕 */
 .aurora-curtain {
   position: absolute;
   left: -20%;
@@ -104,9 +127,9 @@ body {
   background: linear-gradient(
     100deg,
     transparent 15%,
-    rgba(52, 211, 153, 0.28) 32%,
-    rgba(34, 211, 238, 0.22) 48%,
-    rgba(167, 139, 250, 0.28) 65%,
+    rgba(52, 211, 153, 0.22) 32%,
+    rgba(20, 184, 166, 0.16) 48%,
+    rgba(244, 63, 94, 0.14) 65%,
     transparent 82%
   );
   filter: blur(60px);
