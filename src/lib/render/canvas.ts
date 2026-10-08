@@ -1,6 +1,7 @@
 // src/lib/render/canvas.ts
 import type { DeviceKind } from '../tokens'
-import { DEVICE_DEFS, type DeviceDef } from './devices'
+import type { GradientStops } from './color'
+import { DEVICE_DEFS, scenePadding, sceneDims, type DeviceDef } from './devices'
 import { formatLockDate, formatLockTime } from '../time'
 
 export const EXPORT_SCALE = 4
@@ -11,6 +12,8 @@ export interface RenderOptions {
   now: Date
   /** 不传 = 1（预览尺寸） */
   scale?: number
+  /** 场景化背景主色渐变（renderSellerScene 必填） */
+  backdrop?: GradientStops
 }
 
 /** 圆角矩形路径（arcTo 实现，兼容所有 canvas 实现） */
@@ -281,5 +284,42 @@ export function renderDeviceImage(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D context unavailable')
   paintDevice(ctx, def, img, opts, scale)
+  return canvas
+}
+
+/** 场景化卖家预览：主色渐变背景 + 柔和投影 + 居中设备 */
+export function renderSellerScene(
+  img: HTMLImageElement,
+  kind: DeviceKind,
+  opts: RenderOptions & { backdrop: GradientStops },
+): HTMLCanvasElement {
+  const def = DEVICE_DEFS[kind]
+  const scale = opts.scale ?? 1
+  const { padX, padY } = scenePadding(def)
+  const dims = sceneDims(def)
+  const canvas = document.createElement('canvas')
+  canvas.width = dims.width * scale
+  canvas.height = dims.height * scale
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas 2D context unavailable')
+
+  ctx.save()
+  ctx.scale(scale, scale)
+  const grad = ctx.createLinearGradient(0, 0, dims.width, dims.height)
+  grad.addColorStop(0, `rgb(${opts.backdrop.from.join(',')})`)
+  grad.addColorStop(1, `rgb(${opts.backdrop.to.join(',')})`)
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, dims.width, dims.height)
+  ctx.restore()
+
+  ctx.save()
+  ctx.scale(scale, scale)
+  const offY = Math.max(4, Math.round(def.height * 0.015))
+  ctx.translate(padX, padY + offY)
+  ctx.shadowColor = 'rgba(15,15,20,0.4)'
+  ctx.shadowBlur = Math.round(def.width * 0.05)
+  ctx.shadowOffsetY = Math.round(offY * 0.6)
+  paintDevice(ctx, def, img, { ...opts, scale: 1 }, 1)
+  ctx.restore()
   return canvas
 }

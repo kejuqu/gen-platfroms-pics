@@ -65,3 +65,16 @@ export const DEVICE_DEFS: Record<DeviceKind, DeviceDef> = {
     base: 'chin',
   },
 }
+
+/** 场景留白：14% of device size, min 24 */
+export function scenePadding(def: DeviceDef): { padX: number; padY: number } {
+  const padX = Math.max(24, Math.round(def.width * 0.14))
+  const padY = Math.max(24, Math.round(def.height * 0.14))
+  return { padX, padY }
+}
+
+/** 场景画布尺寸：设备 + 四周留白 */
+export function sceneDims(def: DeviceDef): { width: number; height: number } {
+  const { padX, padY } = scenePadding(def)
+  return { width: def.width + padX * 2, height: def.height + padY * 2 }
+}

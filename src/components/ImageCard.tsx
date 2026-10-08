@@ -8,8 +8,9 @@ import type { DeviceKind } from '@/lib/tokens'
 import { PURE_DEVICES, SELLER_DEVICES } from '@/lib/tokens'
 import { downloadBlob } from '@/lib/download'
 import { blobToImage, downloadDeviceImage, downloadDeviceSet } from '@/lib/generate'
-import { DEVICE_DEFS } from '@/lib/render/devices'
-import { renderDeviceImage } from '@/lib/render/canvas'
+import { DEVICE_DEFS, sceneDims } from '@/lib/render/devices'
+import { renderSellerScene } from '@/lib/render/canvas'
+import { extractGradientStops } from '@/lib/render/color'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DeleteImageButton } from '@/components/DeleteImageButton'
@@ -66,9 +67,10 @@ export function ImageCard({
   const previews = useMemo<PreviewItem[]>(() => {
     if (!img) return []
     const now = new Date()
+    const backdrop = extractGradientStops(img)
     return SELLER_DEVICES.map((meta) => {
       try {
-        const canvas = renderDeviceImage(img, meta.kind, { showTime: true, now, scale: 1 })
+        const canvas = renderSellerScene(img, meta.kind, { showTime: true, now, backdrop })
         return { kind: 'ok', kindKey: meta.kind, url: canvas.toDataURL('image/png') }
       } catch {
         return { kind: 'err', kindKey: meta.kind }
@@ -178,11 +180,12 @@ export function ImageCard({
       <div className="mt-4 flex flex-wrap gap-4">
         {previews.map((p) => {
           const meta = SELLER_DEVICES.find((m) => m.kind === p.kindKey)!
+          const dims = sceneDims(DEVICE_DEFS[p.kindKey])
           if (p.kind === 'err') {
             return (
               <div
                 key={p.kindKey}
-                style={{ width: DEVICE_DEFS[p.kindKey].width, height: DEVICE_DEFS[p.kindKey].height }}
+                style={{ width: dims.width, height: dims.height }}
                 className="flex shrink-0 items-center justify-center rounded-thumb bg-white/5 text-xs text-muted-foreground"
               >
                 {t('card.previewFailed')}
@@ -195,7 +198,7 @@ export function ImageCard({
               <img
                 src={p.url}
                 alt={t(`devices.${p.kindKey}`)}
-                style={{ width: DEVICE_DEFS[p.kindKey].width, height: DEVICE_DEFS[p.kindKey].height }}
+                style={{ width: dims.width, height: dims.height }}
                 className="rounded-thumb shadow-card"
               />
               <figcaption className="mt-1.5 text-center text-xs text-muted-foreground">
