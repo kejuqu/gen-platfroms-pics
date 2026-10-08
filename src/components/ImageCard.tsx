@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { StoredImage } from '@/lib/db'
 import type { DeviceKind } from '@/lib/tokens'
-import { PURE_DEVICES, SELLER_DEVICES } from '@/lib/tokens'
+import { SELLER_DEVICES } from '@/lib/tokens'
 import { downloadBlob } from '@/lib/download'
 import { blobToImage, downloadDeviceImage, downloadDeviceSet } from '@/lib/generate'
 import { DEVICE_DEFS, sceneDims } from '@/lib/render/devices'
@@ -152,7 +152,7 @@ export function ImageCard({
             size="sm"
             disabled={busy || !ready}
             className="rounded-full"
-            onClick={() => runDownload(() => downloadDeviceSet(image.blob, SELLER_DEVICES, 'seller', image.name))}
+            onClick={() => runDownload(() => downloadDeviceSet(image.blob, SELLER_DEVICES, image.name))}
           >
             {t('card.sellerSet', { count: SELLER_DEVICES.length })}
           </Button>
@@ -161,17 +161,9 @@ export function ImageCard({
             variant="secondary"
             disabled={busy || !ready}
             className="rounded-full bg-rose-500 text-white hover:bg-rose-600"
-            onClick={() => runDownload(() => downloadDeviceSet(image.blob, PURE_DEVICES, 'pure', image.name))}
+            onClick={() => runDownload(async () => { downloadBlob(image.blob, image.name) })}
           >
-            {t('card.pureSet')}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="rounded-full"
-            onClick={() => downloadBlob(image.blob, image.name)}
-          >
-            {t('card.original')}
+            {t('card.deliver')}
           </Button>
           <DeleteImageButton name={image.name} onConfirm={onDelete} />
         </div>
@@ -211,7 +203,7 @@ export function ImageCard({
                 onClick={() =>
                   runDownload(async () => {
                     if (!img) return
-                    await downloadDeviceImage(img, meta, 'seller', image.name, true)
+                    await downloadDeviceImage(img, meta, image.name)
                   })
                 }
                 className="absolute inset-x-0 top-0 rounded-thumb bg-ink/55 text-white hover:bg-ink/70 hover:text-white"

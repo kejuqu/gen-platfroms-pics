@@ -35,8 +35,8 @@ describe('zipFolderName', () => {
 })
 
 describe('zipEntryName', () => {
-  it('builds folder/prefix-tag-base.png', () => {
-    expect(zipEntryName('seller', 'iphone', 'my pic.png', 'folder')).toBe(
+  it('builds folder/seller-tag-base.png', () => {
+    expect(zipEntryName('iphone', 'my pic.png', 'folder')).toBe(
       'folder/seller-iphone-my pic.png',
     )
   })

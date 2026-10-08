@@ -25,8 +25,7 @@ export const zh = {
   empty: '还没有图片，先上传几张壁纸吧～',
   card: {
     sellerSet: '下载全部预览图（{count} 张）',
-    pureSet: '下载交付三图（无时间）',
-    original: '下载原图',
+    deliver: '下载交付图',
     delete: '删除',
     loading: '正在加载图片…',
     failed: '图片读取失败，可能已损坏',

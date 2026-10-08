@@ -31,15 +31,15 @@ describe('translate', () => {
     expect(translate(zh, zh, 'header.usage', { count: 3, limit: 15 })).toBe('本月已生成 3 / 15 张')
   })
   it('en 字典取值', () => {
-    expect(translate(en, zh, 'card.original')).toBe('Download original')
+    expect(translate(en, zh, 'card.deliver')).toBe('Download delivery image')
   })
   it('插值值含 $ 时不被二次解释', () =>
     expect(translate(zh, zh, 'toast.deleted', { name: 'a$&b' })).toBe('已删除「a$&b」'))
   it('缺失变量原样保留占位符', () =>
     expect(translate(zh, zh, 'toast.saved')).toBe('已保存 {count} 张图片'))
   it('缺 key 回退中文，再缺返回路径本身', () => {
-    const partial = { ...en, card: { ...en.card, original: undefined } } as unknown as typeof en
-    expect(translate(partial, zh, 'card.original')).toBe(zh.card.original)
+    const partial = { ...en, card: { ...en.card, deliver: undefined } } as unknown as typeof en
+    expect(translate(partial, zh, 'card.deliver')).toBe(zh.card.deliver)
     expect(translate(en, zh, 'no.such.key')).toBe('no.such.key')
   })
 })

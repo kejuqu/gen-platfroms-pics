@@ -1,8 +1,8 @@
 // src/lib/batch.ts
 import JSZip from 'jszip'
 import type { StoredImage } from './db'
-import { PURE_DEVICES, SELLER_DEVICES, type Prefix } from './tokens'
-import { blobToImage, renderDeviceBlob } from './generate'
+import { SELLER_DEVICES } from './tokens'
+import { blobToImage, renderSellerBlob } from './generate'
 
 /** 文件夹名：剥离扩展名 + 非法字符清洗；重名（不区分大小写）时追加 id 前 6 位 */
 export function zipFolderName(image: StoredImage, taken: Set<string>): string {
@@ -13,16 +13,16 @@ export function zipFolderName(image: StoredImage, taken: Set<string>): string {
   return name
 }
 
-/** ZIP 内条目路径：<folder>/<prefix>-<tag>-<base>.png，文件名同样清洗非法字符 */
-export function zipEntryName(prefix: Prefix, tag: string, originalName: string, folder: string): string {
+/** ZIP 内条目路径：<folder>/seller-<tag>-<base>.png，文件名同样清洗非法字符 */
+export function zipEntryName(tag: string, originalName: string, folder: string): string {
   const base = originalName.replace(/\.[^.]+$/, '').replace(/[\\/:*?"<>|]/g, '_')
-  return `${folder}/${prefix}-${tag}-${base}.png`
+  return `${folder}/seller-${tag}-${base}.png`
 }
 
 export interface ZipProgress { done: number; total: number; skipped: number }
 
 /**
- * 把所有壁纸的 seller 5 + pure 3 打成 ZIP。单张壁纸渲染失败跳过并计入 skipped。
+ * 把所有壁纸的 seller 5 张预览 + 原始壁纸文件打成 ZIP。单张壁纸渲染失败跳过并计入 skipped。
  * onProgress 每完成一张壁纸回调一次。
  */
 export async function buildZipBlob(
@@ -39,13 +39,10 @@ export async function buildZipBlob(
     try {
       const img = await blobToImage(image.blob)
       for (const meta of SELLER_DEVICES) {
-        zip.file(zipEntryName('seller', meta.tag, image.name, folder),
-          await renderDeviceBlob(img, meta, 'seller', image.name, true))
+        zip.file(zipEntryName(meta.tag, image.name, folder),
+          await renderSellerBlob(img, meta, image.name))
       }
-      for (const meta of PURE_DEVICES) {
-        zip.file(zipEntryName('pure', meta.tag, image.name, folder),
-          await renderDeviceBlob(img, meta, 'pure', image.name, false))
-      }
+      zip.file(`${folder}/${image.name.replace(/[\\/]/g, '_')}`, image.blob)
     } catch {
       skipped += 1
     }

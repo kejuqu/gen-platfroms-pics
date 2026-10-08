@@ -27,8 +27,7 @@ export const en: Dictionary = {
   empty: 'No images yet — upload some wallpapers to get started～',
   card: {
     sellerSet: 'Download all previews ({count})',
-    pureSet: 'Download delivery set (no clock)',
-    original: 'Download original',
+    deliver: 'Download delivery image',
     delete: 'Delete',
     loading: 'Loading image…',
     failed: 'Failed to read the image. It may be corrupted.',
