@@ -38,7 +38,7 @@ export function SelectionToolbar({
   const indeterminate = selectedCount > 0 && !allChecked
 
   return (
-    <div className="mt-6 flex flex-wrap items-center gap-3 rounded-card bg-card px-4 py-3 shadow-card">
+    <div className="flex flex-wrap items-center gap-3 rounded-card bg-card px-4 py-3 shadow-card">
       <Checkbox
         checked={indeterminate ? 'indeterminate' : allChecked}
         onCheckedChange={(v) => onToggleAll(v === true)}

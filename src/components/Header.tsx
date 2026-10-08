@@ -22,8 +22,9 @@ export function Header({
   const { locale, setLocale, t } = useI18n()
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+    // 粘性定位由 page.tsx 的顶部粘性区统一负责
+    <header>
+      <div className="flex items-center gap-3 py-3">
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold text-foreground">{t('app.title')}</h1>
           <p className="hidden text-xs text-muted-foreground sm:block">

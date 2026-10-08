@@ -17,7 +17,7 @@ export function PaginationBar({
   if (pageCount <= 1) return null
 
   return (
-    <div className="mt-6 flex items-center justify-center gap-3">
+    <div className="flex items-center justify-center gap-3">
       <Button
         variant="outline"
         size="sm"

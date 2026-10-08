@@ -152,26 +152,35 @@ export default function Page() {
 
   return (
     <div className="min-h-screen">
-      <Header
-        usageCount={usageCount}
-        onDonate={() => setDonateOpen(true)}
-        onDownloadAll={() => handleZip(images)}
-        downloadAllDisabled={zipBusy || images.length === 0}
-        downloadAllBusy={zipBusy}
-      />
+      {/* 顶部粘性区：标题栏 + 上传区 + 选择工具栏，滚动时始终可见 */}
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-background/85 backdrop-blur">
+        <div className="mx-auto max-w-6xl px-4 pb-4">
+          <Header
+            usageCount={usageCount}
+            onDonate={() => setDonateOpen(true)}
+            onDownloadAll={() => handleZip(images)}
+            downloadAllDisabled={zipBusy || images.length === 0}
+            downloadAllBusy={zipBusy}
+          />
+          <UploadZone onFiles={handleFiles} />
+          {images.length > 0 && (
+            <div className="mt-3">
+              <SelectionToolbar
+                totalOnPage={pageItems.length}
+                selectedCount={selected.size}
+                onToggleAll={toggleAll}
+                onDownloadSelected={() => handleZip(pageItems.filter((i) => selected.has(i.id)))}
+                onDeleteSelected={handleBatchDelete}
+                busy={zipBusy}
+              />
+            </div>
+          )}
+        </div>
+      </div>
       <main className="mx-auto max-w-6xl px-4 py-6">
-        <UploadZone onFiles={handleFiles} />
         {images.length > 0 && (
           <>
-            <SelectionToolbar
-              totalOnPage={pageItems.length}
-              selectedCount={selected.size}
-              onToggleAll={toggleAll}
-              onDownloadSelected={() => handleZip(pageItems.filter((i) => selected.has(i.id)))}
-              onDeleteSelected={handleBatchDelete}
-              busy={zipBusy}
-            />
-            <div className="mt-4 space-y-6">
+            <div className="space-y-6">
               {pageItems.map((img) => (
                 <ImageCard
                   key={img.id}
@@ -183,7 +192,12 @@ export default function Page() {
                 />
               ))}
             </div>
-            <PaginationBar page={safePage} pageCount={pageCount} onChange={setPage} />
+            {/* 分页粘性底部 */}
+            {pageCount > 1 && (
+              <div className="sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-background/85 px-4 py-2 backdrop-blur">
+                <PaginationBar page={safePage} pageCount={pageCount} onChange={setPage} />
+              </div>
+            )}
           </>
         )}
         {images.length === 0 && (
