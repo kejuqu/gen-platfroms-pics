@@ -1,28 +1,52 @@
 // src/app/page.tsx
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Header } from '@/components/Header'
 import { UploadZone } from '@/components/UploadZone'
 import { ImageCard } from '@/components/ImageCard'
 import { DonateModal } from '@/components/DonateModal'
+import { PaginationBar } from '@/components/PaginationBar'
+import { SelectionToolbar } from '@/components/SelectionToolbar'
 import { useI18n } from '@/lib/i18n/context'
 import { addImage, deleteImage, getAllImages, getUsage, markReminderShown, recordGeneration, type StoredImage } from '@/lib/db'
 import { monthKey, shouldRemind } from '@/lib/usage'
+import { paginate } from '@/lib/pagination'
+import { buildZipBlob, zipFileName } from '@/lib/batch'
+import { downloadBlob } from '@/lib/download'
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
+const PAGE_SIZE = 6
 
 export default function Page() {
   const { t } = useI18n()
   const [images, setImages] = useState<StoredImage[]>([])
   const [usageCount, setUsageCount] = useState(0)
   const [donateOpen, setDonateOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [zipBusy, setZipBusy] = useState(false)
 
   const refreshUsage = useCallback(async () => {
     const u = await getUsage()
     setUsageCount(u.month === monthKey(new Date()) ? u.count : 0)
   }, [])
+
+  const { pageItems, pageCount, safePage } = useMemo(
+    () => paginate(images, page, PAGE_SIZE),
+    [images, page],
+  )
+
+  // 删除/上传导致页数变化时，回退到有效页码
+  useEffect(() => {
+    if (safePage !== page) setPage(safePage)
+  }, [safePage, page])
+
+  // 翻页清空选择（选择范围=当前页）
+  useEffect(() => {
+    setSelected(new Set())
+  }, [safePage])
 
   // 页面加载：读取图片 + usage；超限且到期则自动弹打赏
   useEffect(() => {
@@ -52,6 +76,7 @@ export default function Page() {
       }
     }
     setImages(await getAllImages())
+    setPage(1)
     if (valid.length > 0) toast.success(t('toast.saved', { count: valid.length }))
   }
 
@@ -75,23 +100,84 @@ export default function Page() {
     }
   }
 
+  function toggleOne(id: string, v: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (v) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
+
+  function toggleAll(checked: boolean) {
+    setSelected(checked ? new Set(pageItems.map((i) => i.id)) : new Set())
+  }
+
+  async function handleBatchDelete() {
+    const ids = Array.from(selected)
+    let failed = 0
+    for (const id of ids) {
+      try { await deleteImage(id) } catch { failed += 1 }
+    }
+    setSelected(new Set())
+    setImages(await getAllImages())
+    if (failed > 0) toast.error(t('toast.batchDeleteFailed', { count: failed }))
+    else toast.success(t('toast.batchDeleted', { count: ids.length }))
+  }
+
+  async function handleZip(targets: StoredImage[]) {
+    if (zipBusy || targets.length === 0) return
+    setZipBusy(true)
+    const toastId = toast.loading(t('toast.zipping', { done: 0, total: targets.length }))
+    try {
+      const { blob, skipped } = await buildZipBlob(targets, ({ done, total }) =>
+        toast.loading(t('toast.zipping', { done, total }), { id: toastId }))
+      downloadBlob(blob, zipFileName())
+      if (skipped > 0) toast.warning(t('toast.zipSkipped', { count: skipped }), { id: toastId })
+      else toast.success(t('toast.zipDone'), { id: toastId })
+      await handleGenerated() // 一次 ZIP 计 1 次 usage
+    } catch {
+      toast.error(t('toast.zipFailed'), { id: toastId })
+    } finally {
+      setZipBusy(false)
+    }
+  }
+
   return (
     <div className="min-h-screen">
-      <Header usageCount={usageCount} onDonate={() => setDonateOpen(true)} />
+      <Header
+        usageCount={usageCount}
+        onDonate={() => setDonateOpen(true)}
+        onDownloadAll={() => handleZip(images)}
+        downloadAllDisabled={zipBusy || images.length === 0}
+        downloadAllBusy={zipBusy}
+      />
       <main className="mx-auto max-w-6xl px-4 py-6">
         <UploadZone onFiles={handleFiles} />
         {images.length > 0 && (
-          <div className="mt-6 columns-1 gap-4 sm:columns-2 xl:columns-3">
-            {images.map((img) => (
-              <div key={img.id} className="mb-4 break-inside-avoid">
+          <>
+            <SelectionToolbar
+              totalOnPage={pageItems.length}
+              selectedCount={selected.size}
+              onToggleAll={toggleAll}
+              onDownloadSelected={() => handleZip(pageItems.filter((i) => selected.has(i.id)))}
+              onDeleteSelected={handleBatchDelete}
+              busy={zipBusy}
+            />
+            <div className="mt-4 space-y-6">
+              {pageItems.map((img) => (
                 <ImageCard
+                  key={img.id}
                   image={img}
+                  selected={selected.has(img.id)}
+                  onSelectChange={(v) => toggleOne(img.id, v)}
                   onDelete={() => handleDelete(img)}
                   onGenerated={handleGenerated}
                 />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            <PaginationBar page={safePage} pageCount={pageCount} onChange={setPage} />
+          </>
         )}
         {images.length === 0 && (
           <p className="py-10 text-center text-sm text-muted-foreground">{t('empty')}</p>

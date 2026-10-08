@@ -9,9 +9,15 @@ import { cn } from '@/lib/utils'
 export function Header({
   usageCount,
   onDonate,
+  onDownloadAll,
+  downloadAllDisabled,
+  downloadAllBusy,
 }: {
   usageCount: number
   onDonate: () => void
+  onDownloadAll: () => void
+  downloadAllDisabled: boolean
+  downloadAllBusy: boolean
 }) {
   const { locale, setLocale, t } = useI18n()
 
@@ -24,6 +30,15 @@ export function Header({
             {t('header.usage', { count: usageCount, limit: USAGE_LIMIT })}
           </p>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 rounded-full"
+          disabled={downloadAllDisabled}
+          onClick={onDownloadAll}
+        >
+          {downloadAllBusy ? `⏳ ${t('header.downloadAll')}` : t('header.downloadAll')}
+        </Button>
         <div
           role="group"
           aria-label={t('lang.label')}

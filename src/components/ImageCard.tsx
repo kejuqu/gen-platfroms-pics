@@ -11,6 +11,7 @@ import { blobToImage, downloadDeviceImage, downloadDeviceSet } from '@/lib/gener
 import { DEVICE_DEFS } from '@/lib/render/devices'
 import { renderDeviceImage } from '@/lib/render/canvas'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { DeleteImageButton } from '@/components/DeleteImageButton'
 import { useI18n } from '@/lib/i18n/context'
 import { dateLocale } from '@/lib/i18n'
@@ -23,10 +24,14 @@ export function ImageCard({
   image,
   onDelete,
   onGenerated,
+  selected,
+  onSelectChange,
 }: {
   image: StoredImage
   onDelete: () => void
   onGenerated: () => void
+  selected: boolean
+  onSelectChange: (v: boolean) => void
 }) {
   const { t, locale } = useI18n()
   const [img, setImg] = useState<HTMLImageElement | null>(null)
@@ -117,6 +122,12 @@ export function ImageCard({
     <div className="rounded-card bg-card p-5 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(v) => onSelectChange(v === true)}
+            aria-label={t('toolbar.selectPage')}
+            className="mt-1"
+          />
           {ready && thumbUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
