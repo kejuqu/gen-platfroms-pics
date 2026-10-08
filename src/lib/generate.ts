@@ -20,6 +20,18 @@ export function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   })
 }
 
+/** 渲染单张设备图为 Blob（不下载），供单张与 ZIP 批量共用 */
+export async function renderDeviceBlob(
+  img: HTMLImageElement,
+  meta: DeviceMeta,
+  prefix: Prefix,
+  originalName: string,
+  showTime: boolean,
+): Promise<Blob> {
+  const canvas = renderDeviceImage(img, meta.kind, { showTime, now: new Date(), scale: EXPORT_SCALE })
+  return canvasToBlob(canvas)
+}
+
 /** 渲染单张设备图并下载（导出尺寸 = EXPORT_SCALE 高清） */
 export async function downloadDeviceImage(
   img: HTMLImageElement,
@@ -28,8 +40,7 @@ export async function downloadDeviceImage(
   originalName: string,
   showTime: boolean,
 ): Promise<void> {
-  const canvas = renderDeviceImage(img, meta.kind, { showTime, now: new Date(), scale: EXPORT_SCALE })
-  const blob = await canvasToBlob(canvas)
+  const blob = await renderDeviceBlob(img, meta, prefix, originalName, showTime)
   downloadBlob(blob, deviceFileName(prefix, meta.tag, originalName))
 }
 
