@@ -83,6 +83,13 @@ export default function Page() {
   async function handleDelete(image: StoredImage) {
     try {
       await deleteImage(image.id)
+      // 同步从已选集合移除，避免工具栏计数虚高
+      setSelected((prev) => {
+        if (!prev.has(image.id)) return prev
+        const next = new Set(prev)
+        next.delete(image.id)
+        return next
+      })
       setImages(await getAllImages())
       toast.success(t('toast.deleted', { name: image.name }))
     } catch {
