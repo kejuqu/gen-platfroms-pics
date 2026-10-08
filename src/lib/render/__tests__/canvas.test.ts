@@ -14,6 +14,8 @@ function createStubContext() {
     shadowBlur: 0,
     save: () => {},
     restore: () => {},
+    translate: () => {},
+    rect: () => {},
     scale: (...args: number[]) => { calls.scale.push(args) },
     beginPath: () => {},
     moveTo: () => {},
@@ -61,12 +63,12 @@ describe('DEVICE_DEFS 几何约束', () => {
 })
 
 describe('paintDevice', () => {
-  it('绘制壁纸与两组时间文字（日期+时间）', () => {
+  it('绘制壁纸与三组时间文字（日期+时间+状态栏小时间）', () => {
     const { ctx, calls } = createStubContext()
     paintDevice(ctx, DEVICE_DEFS.iphone, fakeImg, baseOpts, 1)
     expect(calls.clip).toBeGreaterThanOrEqual(1)
     expect(calls.drawImage).toBe(1)
-    expect(calls.fillText).toBe(2)
+    expect(calls.fillText).toBe(3) // 日期+时间+状态栏小时间
   })
 
   it('showTime=false 时不绘制时间文字', () => {
