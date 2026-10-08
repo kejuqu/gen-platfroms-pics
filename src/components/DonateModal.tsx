@@ -69,11 +69,21 @@ export function DonateModal({
             </p>
           </div>
         </div>
-        <DialogClose asChild>
-          <Button className="w-full rounded-full bg-gradient-to-r from-brand-500 to-rose-500 text-white hover:from-brand-600 hover:to-rose-600">
-            {t("donate.close")}
-          </Button>
-        </DialogClose>
+        <div className="flex gap-2">
+          <DialogClose asChild>
+            <Button
+              variant="outline"
+              className="flex-1 rounded-full"
+            >
+              {t("donate.nextTime")}
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button className="flex-1 rounded-full bg-gradient-to-r from-brand-500 to-rose-500 text-white hover:from-brand-600 hover:to-rose-600">
+              {t("donate.paid")}
+            </Button>
+          </DialogClose>
+        </div>
       </DialogContent>
     </Dialog>
   );

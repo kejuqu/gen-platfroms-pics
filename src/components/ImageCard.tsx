@@ -1,22 +1,21 @@
 // src/components/ImageCard.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import type { StoredImage } from "@/lib/db";
 import type { DeviceKind } from "@/lib/tokens";
 import { SELLER_DEVICES } from "@/lib/tokens";
 import { downloadBlob } from "@/lib/download";
-import {
-  blobToImage,
-  downloadDeviceImage,
-  downloadDeviceSet,
-} from "@/lib/generate";
+import { blobToImage, downloadDeviceImage } from "@/lib/generate";
+import { buildImageZipBlob, imageZipFileName } from "@/lib/batch";
+import { DisabledTip } from "@/components/DisabledTip";
 import { PREVIEW_BASE, renderThreePreview } from "@/lib/render/three";
 import { extractGradientStops } from "@/lib/render/color";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteImageButton } from "@/components/DeleteImageButton";
 import { useI18n } from "@/lib/i18n/context";
 import { dateLocale } from "@/lib/i18n";
@@ -78,21 +77,41 @@ export function ImageCard({
   }, [image.blob, retryCount]);
 
   // 预览：Three.js 渲染（页面展示啥，下载的就是同一张图的 4× 版）
-  const previews = useMemo<PreviewItem[]>(() => {
-    if (!img) return [];
+  // 分帧渲染：每台设备一个 rAF 节拍，避免多张卡片的同步渲染阻塞主线程
+  const [previews, setPreviews] = useState<PreviewItem[]>([]);
+  useEffect(() => {
+    if (!img) {
+      setPreviews([]);
+      return;
+    }
+    let cancelled = false;
     const now = new Date("2026/05/20 13:14:15");
     const backdrop = extractGradientStops(img);
-    return SELLER_DEVICES.map((meta) => {
+    const items: PreviewItem[] = [];
+    let i = 0;
+    const step = () => {
+      if (cancelled) return;
+      if (i >= SELLER_DEVICES.length) {
+        setPreviews(items);
+        return;
+      }
+      const meta = SELLER_DEVICES[i];
       try {
-        return {
+        items.push({
           kind: "ok",
           kindKey: meta.kind,
           url: renderThreePreview(img, meta.kind, { now, backdrop }),
-        };
+        });
       } catch {
-        return { kind: "err", kindKey: meta.kind };
+        items.push({ kind: "err", kindKey: meta.kind });
       }
-    });
+      i += 1;
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    return () => {
+      cancelled = true;
+    };
   }, [img]);
 
   // 灯箱顺序：电脑 → iPhone → iPad（与卡片视觉布局一致），仅收录渲染成功的预览
@@ -119,7 +138,7 @@ export function ImageCard({
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox, orderedPreviews.length]);
 
-  // 单个预览渲染：圆角等比图 + 设备名 + 悬浮下载按钮（extraClass 控制布局占比）
+  // 单个预览渲染：圆角等比图（w-full + aspectRatio 撑起布局）+ 设备名 + 悬浮下载按钮
   function renderPreview(p: PreviewItem | undefined, extraClass = "") {
     if (!p) return null;
     const meta = SELLER_DEVICES.find((m) => m.kind === p.kindKey)!;
@@ -130,14 +149,14 @@ export function ImageCard({
         <div
           key={p.kindKey}
           style={{ aspectRatio: aspect }}
-          className={`flex items-center justify-center rounded-2xl bg-white/5 text-xs text-muted-foreground ${extraClass}`}
+          className={`flex items-center justify-center rounded-2xl bg-white/5 px-6 text-xs text-muted-foreground ${extraClass}`}
         >
           {t("card.previewFailed")}
         </div>
       );
     }
     return (
-      <figure key={p.kindKey} className={`group relative ${extraClass}`}>
+      <figure key={p.kindKey} className={`group relative min-w-0 ${extraClass}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={p.url}
@@ -168,7 +187,6 @@ export function ImageCard({
     );
   }
 
-  // 参考营销图布局：电脑全宽在上，iPhone + iPad 横屏并排在下（底部对齐）
   const lightboxCurrent = lightbox !== null ? orderedPreviews[lightbox] : undefined;
 
   function handleLightboxDownload() {
@@ -232,6 +250,12 @@ export function ImageCard({
   }
 
   const ready = img !== null;
+  // 按钮禁用原因：图片未就绪 / 有下载进行中（hover 以 tooltip 展示）
+  const disabledReason = !ready
+    ? t("card.tipLoading")
+    : busy
+      ? t("card.tipBusy")
+      : null;
 
   return (
     <div className="rounded-card bg-card p-5 shadow-card">
@@ -251,10 +275,7 @@ export function ImageCard({
               className="h-14 w-14 rounded-lg object-cover"
             />
           ) : (
-            <div
-              className="h-14 w-14 animate-pulse rounded-lg bg-white/10"
-              aria-hidden="true"
-            />
+            <Skeleton className="h-14 w-14 rounded-lg" aria-hidden="true" />
           )}
           <div>
             <p className="max-w-[16rem] truncate text-sm font-semibold text-card-foreground">
@@ -266,45 +287,70 @@ export function ImageCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={busy || !ready}
-            className="rounded-full"
-            onClick={() =>
-              runDownload(() =>
-                downloadDeviceSet(image.blob, SELLER_DEVICES, image.name),
-              )
-            }
-          >
-            {t("card.sellerSet", { count: SELLER_DEVICES.length })}
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={busy || !ready}
-            className="rounded-full bg-rose-500 text-white hover:bg-rose-600"
-            onClick={() =>
-              runDownload(async () => {
-                downloadBlob(image.blob, image.name);
-              })
-            }
-          >
-            {t("card.deliver")}
-          </Button>
+          {/* 卡片级操作：outline 弱样式，与顶部全局批量操作栏的实心按钮区分层级 */}
+          <DisabledTip reason={disabledReason}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy || !ready}
+              className="rounded-full"
+              onClick={() =>
+                runDownload(async () => {
+                  const blob = await buildImageZipBlob(image, {
+                    includeDelivery: true,
+                  });
+                  downloadBlob(blob, imageZipFileName(image.name, true));
+                })
+              }
+            >
+              {t("card.bundle")}
+            </Button>
+          </DisabledTip>
           <DeleteImageButton name={image.name} onConfirm={onDelete} />
         </div>
       </div>
 
       <div className="mt-4 space-y-4">
-        {renderPreview(macPreview, "w-full")}
-        <div className="grid grid-cols-[1fr_2fr] items-end gap-4">
-          {renderPreview(phonePreview)}
-          {renderPreview(padPreview)}
-        </div>
-        {!ready && (
-          <p className="py-10 text-sm text-muted-foreground">
-            {t("card.loading")}
-          </p>
+        {previews.length > 0 ? (
+          <>
+            {/* 电脑预览：顶部居中，限制最大宽度避免过大 */}
+            <div className="mx-auto w-full max-w-2xl">
+              {renderPreview(macPreview)}
+            </div>
+            {/* iPhone + iPad 横屏并排在下（1:2，底部对齐） */}
+            <div className="grid grid-cols-[1fr_2fr] items-end gap-4">
+              {renderPreview(phonePreview)}
+              {renderPreview(padPreview)}
+            </div>
+          </>
+        ) : (
+          /* 加载中：按预览布局展示骨架屏（电脑限宽 + 手机/iPad 并排） */
+          <div
+            className="space-y-4"
+            aria-busy="true"
+            aria-label={t("card.loading")}
+          >
+            <Skeleton
+              className="mx-auto w-full max-w-2xl rounded-2xl"
+              style={{
+                aspectRatio: `${PREVIEW_BASE.macbook.width} / ${PREVIEW_BASE.macbook.height}`,
+              }}
+            />
+            <div className="grid grid-cols-[1fr_2fr] gap-4">
+              <Skeleton
+                className="w-full rounded-2xl"
+                style={{
+                  aspectRatio: `${PREVIEW_BASE.iphone.width} / ${PREVIEW_BASE.iphone.height}`,
+                }}
+              />
+              <Skeleton
+                className="w-full rounded-2xl"
+                style={{
+                  aspectRatio: `${PREVIEW_BASE["ipad-landscape"].width} / ${PREVIEW_BASE["ipad-landscape"].height}`,
+                }}
+              />
+            </div>
+          </div>
         )}
       </div>
 

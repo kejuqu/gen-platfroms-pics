@@ -27,7 +27,7 @@ const SCENE_CFG: Record<
   ThreeKind,
   { tiltX: number; tiltY: number; camPos: [number, number, number]; camTarget: [number, number, number]; groundY: number }
 > = {
-  iphone: { tiltX: -0.28, tiltY: -0.42, camPos: [0, 1.6, 20], camTarget: [0, -0.2, 0], groundY: -4.2 },
+  iphone: { tiltX: -0.28, tiltY: -0.58, camPos: [0, 1.6, 20], camTarget: [0, -0.2, 0], groundY: -4.2 },
   'ipad-landscape': { tiltX: -0.22, tiltY: -0.5, camPos: [0, 1.8, 16.4], camTarget: [0, 0, 0], groundY: -3.3 },
   macbook: { tiltX: 0, tiltY: 0, camPos: [0, 3.0, 13.4], camTarget: [0, 2.0, -0.5], groundY: 0 },
 }
@@ -341,7 +341,8 @@ export function renderThreePreview(
 
   const screenTex = new THREE.CanvasTexture(composeLockScreen(img, kind, opts.now))
   screenTex.colorSpace = THREE.SRGBColorSpace
-  screenTex.anisotropy = 4
+  // 最高各向异性：斜视/缩小时锁屏文字更锐利
+  screenTex.anisotropy = 16
 
   const { scene, camera } = buildScene(kind, screenTex, opts.backdrop)
   r.render(scene, camera)

@@ -2,6 +2,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { DisabledTip } from '@/components/DisabledTip'
 import { USAGE_LIMIT } from '@/lib/usage'
 import { useI18n } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
@@ -20,6 +21,12 @@ export function Header({
   downloadAllBusy: boolean
 }) {
   const { locale, setLocale, t } = useI18n()
+  // 禁用原因（hover 以 tooltip 展示）：打包中 > 没有图片
+  const downloadAllReason = downloadAllBusy
+    ? t('card.tipBusy')
+    : downloadAllDisabled
+      ? t('header.tipEmpty')
+      : null
 
   return (
     // 粘性定位由 page.tsx 的顶部粘性区统一负责
@@ -31,15 +38,17 @@ export function Header({
             {t('header.usage', { count: usageCount, limit: USAGE_LIMIT })}
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="shrink-0 rounded-full"
-          disabled={downloadAllDisabled}
-          onClick={onDownloadAll}
-        >
-          {downloadAllBusy ? `⏳ ${t('header.downloadAll')}` : t('header.downloadAll')}
-        </Button>
+        <DisabledTip reason={downloadAllReason}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0 rounded-full"
+            disabled={downloadAllDisabled}
+            onClick={onDownloadAll}
+          >
+            {downloadAllBusy ? `⏳ ${t('header.downloadAll')}` : t('header.downloadAll')}
+          </Button>
+        </DisabledTip>
         <div
           role="group"
           aria-label={t('lang.label')}

@@ -7,7 +7,7 @@ import { formatLockDate, formatLockTime } from '../time'
 export const EXPORT_SCALE = 4
 
 /** 锁屏贴图超采样倍数：日期/图标文字在高分屏与 4× 导出下保持锐利 */
-const SUPERSAMPLE = 3
+const SUPERSAMPLE = 4
 
 /** 参与 Three.js 渲染的设备种类（iPad 竖屏 / iMac 已下线） */
 export type ScreenKind = Extract<DeviceKind, 'iphone' | 'ipad-landscape' | 'macbook'>

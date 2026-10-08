@@ -99,9 +99,9 @@ describe('SCREEN_TEX_SIZE', () => {
 })
 
 describe('composeLockScreen', () => {
-  it('输出 3× 尺寸 canvas 且应用 3× 缩放', () => {
+  it('输出 4× 尺寸 canvas 且应用 4× 缩放', () => {
     composeLockScreen(fakeImg, 'iphone', new Date(2026, 9, 6, 19, 16))
-    expect(lastCalls.scale[0]).toEqual([3, 3])
+    expect(lastCalls.scale[0]).toEqual([4, 4])
   })
 
   it('壁纸绘制前按设备圆角裁剪屏幕贴图', () => {
@@ -109,18 +109,18 @@ describe('composeLockScreen', () => {
     expect(lastCalls.clip).toBeGreaterThanOrEqual(1)
   })
 
-  it('iPhone 贴图：壁纸 + 3 组文字（日期+时间+状态栏小时间），尺寸 1170×2532', () => {
+  it('iPhone 贴图：壁纸 + 3 组文字（日期+时间+状态栏小时间），尺寸 1560×3376', () => {
     const c = composeLockScreen(fakeImg, 'iphone', new Date(2026, 9, 6, 19, 16))
-    expect(c.width).toBe(SCREEN_TEX_SIZE.iphone.w * 3)
-    expect(c.height).toBe(SCREEN_TEX_SIZE.iphone.h * 3)
+    expect(c.width).toBe(SCREEN_TEX_SIZE.iphone.w * 4)
+    expect(c.height).toBe(SCREEN_TEX_SIZE.iphone.h * 4)
     expect(lastCalls.drawImage).toBe(1)
     expect(lastCalls.fillText).toBe(3)
   })
 
-  it('macbook 贴图：壁纸 + 2 组文字（仅日期+时间），尺寸 2700×1686', () => {
+  it('macbook 贴图：壁纸 + 2 组文字（仅日期+时间），尺寸 3600×2248', () => {
     const c = composeLockScreen(fakeImg, 'macbook', new Date(2026, 9, 6, 19, 16))
-    expect(c.width).toBe(2700)
-    expect(c.height).toBe(1686)
+    expect(c.width).toBe(3600)
+    expect(c.height).toBe(2248)
     expect(lastCalls.fillText).toBe(2)
   })
 })

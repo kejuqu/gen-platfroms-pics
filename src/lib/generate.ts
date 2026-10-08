@@ -42,16 +42,3 @@ export async function downloadDeviceImage(
   const blob = await renderSellerBlob(img, meta, originalName)
   downloadBlob(blob, deviceFileName(meta.tag, originalName))
 }
-
-/** 按设备组批量下载，每张之间小间隔避免浏览器拦截 */
-export async function downloadDeviceSet(
-  blob: Blob,
-  devices: DeviceMeta[],
-  originalName: string,
-): Promise<void> {
-  const img = await blobToImage(blob)
-  for (let i = 0; i < devices.length; i++) {
-    await downloadDeviceImage(img, devices[i], originalName)
-    if (i < devices.length - 1) await new Promise((r) => setTimeout(r, 300))
-  }
-}

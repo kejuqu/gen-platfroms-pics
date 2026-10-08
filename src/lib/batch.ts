@@ -58,3 +58,31 @@ export function zipFileName(now: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, '0')
   return `mockups-${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}.zip`
 }
+
+/**
+ * 单张壁纸的 ZIP：
+ * - 默认只装 seller 预览（3 张，与页面同一渲染的 4× 图）
+ * - includeDelivery=true 时额外装入原始壁纸（交付资源）
+ */
+export async function buildImageZipBlob(
+  image: StoredImage,
+  opts: { includeDelivery?: boolean } = {},
+): Promise<Blob> {
+  const zip = new JSZip()
+  const folder = zipFolderName(image, new Set())
+  const img = await blobToImage(image.blob)
+  for (const meta of SELLER_DEVICES) {
+    zip.file(zipEntryName(meta.tag, image.name, folder),
+      await renderSellerBlob(img, meta, image.name))
+  }
+  if (opts.includeDelivery) {
+    zip.file(`${folder}/${image.name.replace(/[\\/]/g, '_')}`, image.blob)
+  }
+  return zip.generateAsync({ type: 'blob' })
+}
+
+/** 单张 ZIP 文件名：<base>-previews.zip 或 <base>-bundle.zip */
+export function imageZipFileName(originalName: string, includeDelivery: boolean): string {
+  const base = originalName.replace(/\.[^.]+$/, '').replace(/[\\/:*?"<>|]/g, '_').trim() || 'image'
+  return includeDelivery ? `${base}-bundle.zip` : `${base}-previews.zip`
+}

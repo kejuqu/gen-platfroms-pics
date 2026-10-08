@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { DisabledTip } from '@/components/DisabledTip'
 import { useI18n } from '@/lib/i18n/context'
 
 export function SelectionToolbar({
@@ -36,6 +37,9 @@ export function SelectionToolbar({
 
   const allChecked = selectedCount === totalOnPage
   const indeterminate = selectedCount > 0 && !allChecked
+  // 按钮禁用原因（hover 以 tooltip 展示）
+  const actionDisabledReason =
+    selectedCount === 0 ? t('toolbar.tipNoneSelected') : busy ? t('card.tipBusy') : null
 
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-card bg-card px-4 py-3 shadow-card">
@@ -49,25 +53,28 @@ export function SelectionToolbar({
         {t('toolbar.selected', { count: selectedCount })}
       </span>
       <div className="ml-auto flex items-center gap-2">
-        <Button
-          size="sm"
-          className="rounded-full"
-          disabled={selectedCount === 0 || busy}
-          onClick={onDownloadSelected}
-        >
-          {t('toolbar.downloadSelected')}
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="rounded-full"
-              disabled={selectedCount === 0 || busy}
-            >
-              {t('toolbar.deleteSelected')}
-            </Button>
-          </AlertDialogTrigger>
+        <DisabledTip reason={actionDisabledReason}>
+          <Button
+            size="sm"
+            className="rounded-full"
+            disabled={selectedCount === 0 || busy}
+            onClick={onDownloadSelected}
+          >
+            {t('toolbar.downloadSelected')}
+          </Button>
+        </DisabledTip>
+        <DisabledTip reason={actionDisabledReason}>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="rounded-full"
+                disabled={selectedCount === 0 || busy}
+              >
+                {t('toolbar.deleteSelected')}
+              </Button>
+            </AlertDialogTrigger>
           <AlertDialogContent className="sm:max-w-sm">
             <AlertDialogHeader>
               <AlertDialogTitle>{t('confirmDeleteBatch.title')}</AlertDialogTitle>
@@ -82,7 +89,8 @@ export function SelectionToolbar({
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        </AlertDialog>
+          </AlertDialog>
+        </DisabledTip>
       </div>
     </div>
   )

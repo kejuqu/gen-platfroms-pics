@@ -6,12 +6,14 @@ export const en: Dictionary = {
     usage: 'Generated {count} / {limit} this month',
     donate: '☕ Buy me a coffee',
     downloadAll: 'Download all (ZIP)',
+    tipEmpty: 'No images yet',
   },
   toolbar: {
     selectPage: 'Select this page',
     selected: '{count} selected',
     downloadSelected: 'Download selected (ZIP)',
     deleteSelected: 'Delete selected',
+    tipNoneSelected: 'Select images first',
   },
   pagination: {
     prev: 'Prev',
@@ -28,8 +30,12 @@ export const en: Dictionary = {
   card: {
     sellerSet: 'Download all previews ({count})',
     deliver: 'Download delivery image',
+    bundle: 'Download previews & delivery',
     delete: 'Delete',
     loading: 'Loading image…',
+    original: 'Original',
+    tipLoading: 'Image loading, please wait',
+    tipBusy: 'A download is in progress, please wait',
     failed: 'Failed to read the image. It may be corrupted.',
     retry: 'Retry',
     previewFailed: 'Preview failed',
@@ -58,6 +64,8 @@ export const en: Dictionary = {
     qrPendingLine1: 'QR code',
     qrPendingLine2: 'coming soon',
     close: 'Close',
+    paid: 'Paid',
+    nextTime: 'Next time',
   },
   confirmDelete: {
     title: 'Delete image',

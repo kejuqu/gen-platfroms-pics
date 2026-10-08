@@ -4,12 +4,14 @@ export const zh = {
     usage: '本月已生成 {count} / {limit} 张',
     donate: '☕ 打赏支持',
     downloadAll: '下载全部 ZIP',
+    tipEmpty: '还没有图片',
   },
   toolbar: {
     selectPage: '全选本页',
     selected: '已选 {count} 项',
     downloadSelected: '下载选中 ZIP',
     deleteSelected: '删除选中',
+    tipNoneSelected: '请先勾选图片',
   },
   pagination: {
     prev: '上一页',
@@ -26,8 +28,12 @@ export const zh = {
   card: {
     sellerSet: '下载全部预览图（{count} 张）',
     deliver: '下载交付图',
+    bundle: '下载预览和交付',
     delete: '删除',
     loading: '正在加载图片…',
+    original: '原图',
+    tipLoading: '图片加载中，请稍候',
+    tipBusy: '有下载正在进行，请稍候',
     failed: '图片读取失败，可能已损坏',
     retry: '重试',
     previewFailed: '预览生成失败',
@@ -56,6 +62,8 @@ export const zh = {
     qrPendingLine1: '二维码',
     qrPendingLine2: '待补充',
     close: '关闭',
+    paid: '已支付',
+    nextTime: '下次一定',
   },
   confirmDelete: {
     title: '删除图片',
