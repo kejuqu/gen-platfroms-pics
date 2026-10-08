@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
 import type { StoredImage } from "@/lib/db";
 import type { DeviceKind } from "@/lib/tokens";
 import { SELLER_DEVICES } from "@/lib/tokens";
@@ -12,8 +13,7 @@ import {
   downloadDeviceImage,
   downloadDeviceSet,
 } from "@/lib/generate";
-import { DEVICE_DEFS, sceneDims } from "@/lib/render/devices";
-import { renderSellerScene } from "@/lib/render/canvas";
+import { PREVIEW_BASE, renderThreePreview } from "@/lib/render/three";
 import { extractGradientStops } from "@/lib/render/color";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -43,6 +43,8 @@ export function ImageCard({
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  /** 灯箱：当前展示的预览在 orderedPreviews 中的下标，null=关闭 */
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
   const mounted = useRef(true);
   useEffect(() => {
@@ -75,28 +77,108 @@ export function ImageCard({
     };
   }, [image.blob, retryCount]);
 
-  // 预览：每个设备独立 try/catch，单设备失败不影响其他
+  // 预览：Three.js 渲染（页面展示啥，下载的就是同一张图的 4× 版）
   const previews = useMemo<PreviewItem[]>(() => {
     if (!img) return [];
-    const now = new Date();
+    const now = new Date("2026/05/20 13:14:15");
     const backdrop = extractGradientStops(img);
     return SELLER_DEVICES.map((meta) => {
       try {
-        const canvas = renderSellerScene(img, meta.kind, {
-          showTime: true,
-          now,
-          backdrop,
-        });
         return {
           kind: "ok",
           kindKey: meta.kind,
-          url: canvas.toDataURL("image/png"),
+          url: renderThreePreview(img, meta.kind, { now, backdrop }),
         };
       } catch {
         return { kind: "err", kindKey: meta.kind };
       }
     });
   }, [img]);
+
+  // 灯箱顺序：电脑 → iPhone → iPad（与卡片视觉布局一致），仅收录渲染成功的预览
+  const macPreview = previews.find((p) => p.kindKey === "macbook");
+  const phonePreview = previews.find((p) => p.kindKey === "iphone");
+  const padPreview = previews.find((p) => p.kindKey === "ipad-landscape");
+  const orderedPreviews = [macPreview, phonePreview, padPreview].filter(
+    (p): p is PreviewItem => !!p && p.kind === "ok",
+  );
+
+  // 灯箱键盘操作：Esc 关闭，←/→ 切换上一张/下一张
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowLeft")
+        setLightbox((i) =>
+          i === null ? i : (i - 1 + orderedPreviews.length) % orderedPreviews.length,
+        );
+      if (e.key === "ArrowRight")
+        setLightbox((i) => (i === null ? i : (i + 1) % orderedPreviews.length));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, orderedPreviews.length]);
+
+  // 单个预览渲染：圆角等比图 + 设备名 + 悬浮下载按钮（extraClass 控制布局占比）
+  function renderPreview(p: PreviewItem | undefined, extraClass = "") {
+    if (!p) return null;
+    const meta = SELLER_DEVICES.find((m) => m.kind === p.kindKey)!;
+    const dims = PREVIEW_BASE[p.kindKey];
+    const aspect = `${dims.width} / ${dims.height}`;
+    if (p.kind === "err") {
+      return (
+        <div
+          key={p.kindKey}
+          style={{ aspectRatio: aspect }}
+          className={`flex items-center justify-center rounded-2xl bg-white/5 text-xs text-muted-foreground ${extraClass}`}
+        >
+          {t("card.previewFailed")}
+        </div>
+      );
+    }
+    return (
+      <figure key={p.kindKey} className={`group relative ${extraClass}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={p.url}
+          alt={t(`devices.${p.kindKey}`)}
+          style={{ aspectRatio: aspect }}
+          onClick={() => setLightbox(orderedPreviews.indexOf(p))}
+          className="h-auto w-full cursor-zoom-in rounded-2xl shadow-card ring-1 ring-white/10"
+        />
+        <figcaption className="mt-1.5 text-center text-sm font-semibold text-card-foreground/80">
+          {t(`devices.${p.kindKey}`)}
+        </figcaption>
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={busy || !ready}
+          onClick={() =>
+            runDownload(async () => {
+              if (!img) return;
+              await downloadDeviceImage(img, meta, image.name);
+            })
+          }
+          className="absolute bottom-8 right-2.5 gap-1.5 rounded-full bg-ink/55 px-3 text-xs text-white opacity-0 backdrop-blur-md transition-opacity hover:bg-ink/75 hover:text-white group-hover:opacity-100"
+        >
+          <Download className="h-3.5 w-3.5" />
+          {t("card.downloadPng")}
+        </Button>
+      </figure>
+    );
+  }
+
+  // 参考营销图布局：电脑全宽在上，iPhone + iPad 横屏并排在下（底部对齐）
+  const lightboxCurrent = lightbox !== null ? orderedPreviews[lightbox] : undefined;
+
+  function handleLightboxDownload() {
+    if (!lightboxCurrent || lightboxCurrent.kind !== "ok") return;
+    const meta = SELLER_DEVICES.find((m) => m.kind === lightboxCurrent.kindKey)!;
+    runDownload(async () => {
+      if (!img) return;
+      await downloadDeviceImage(img, meta, image.name);
+    });
+  }
 
   async function runDownload(fn: () => Promise<void>) {
     if (busy) return;
@@ -213,56 +295,94 @@ export function ImageCard({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-4">
-        {previews.map((p) => {
-          const meta = SELLER_DEVICES.find((m) => m.kind === p.kindKey)!;
-          const dims = sceneDims(DEVICE_DEFS[p.kindKey]);
-          if (p.kind === "err") {
-            return (
-              <div
-                key={p.kindKey}
-                style={{ width: dims.width, height: dims.height }}
-                className="flex shrink-0 items-center justify-center rounded-thumb bg-white/5 text-xs text-muted-foreground"
-              >
-                {t("card.previewFailed")}
-              </div>
-            );
-          }
-          return (
-            <figure key={p.kindKey} className="group relative sm:shrink-0 ">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.url}
-                alt={t(`devices.${p.kindKey}`)}
-                style={{ width: dims.width, height: dims.height }}
-                className="rounded-thumb shadow-card"
-              />
-              <figcaption className="mt-1.5 text-center text-xs text-muted-foreground">
-                {t(`devices.${p.kindKey}`)}
-              </figcaption>
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={busy || !ready}
-                onClick={() =>
-                  runDownload(async () => {
-                    if (!img) return;
-                    await downloadDeviceImage(img, meta, image.name);
-                  })
-                }
-                className="absolute inset-x-0 top-0 rounded-thumb bg-ink/55 text-white hover:bg-ink/70 hover:text-white"
-              >
-                {t("card.downloadPng")}
-              </Button>
-            </figure>
-          );
-        })}
+      <div className="mt-4 space-y-4">
+        {renderPreview(macPreview, "w-full")}
+        <div className="grid grid-cols-[1fr_2fr] items-end gap-4">
+          {renderPreview(phonePreview)}
+          {renderPreview(padPreview)}
+        </div>
         {!ready && (
           <p className="py-10 text-sm text-muted-foreground">
             {t("card.loading")}
           </p>
         )}
       </div>
+
+      {/* 灯箱：点击预览图打开，支持上一张/下一张切换、下载、Esc/点击遮罩关闭 */}
+      {lightboxCurrent && lightboxCurrent.kind === "ok" && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          onClick={() => setLightbox(null)}
+        >
+          <div
+            className="flex max-h-full flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxCurrent.url}
+              alt={t(`devices.${lightboxCurrent.kindKey}`)}
+              className="max-h-[72vh] w-auto max-w-full rounded-2xl"
+            />
+            <div className="mt-3 flex items-center gap-3 text-sm font-medium text-white/90">
+              <span>{t(`devices.${lightboxCurrent.kindKey}`)}</span>
+              <span className="text-white/50">
+                {lightbox! + 1} / {orderedPreviews.length}
+              </span>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <Button
+                size="sm"
+                className="gap-1.5 rounded-full"
+                onClick={handleLightboxDownload}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {t("card.downloadPng")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-full"
+                onClick={() => setLightbox(null)}
+              >
+                {t("donate.close")}
+              </Button>
+            </div>
+            <Button
+              aria-label="上一张"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-ink/60 px-2.5 text-white hover:bg-ink/85"
+              onClick={() =>
+                setLightbox(
+                  (i) =>
+                    i === null
+                      ? i
+                      : (i - 1 + orderedPreviews.length) % orderedPreviews.length,
+                )
+              }
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              aria-label="下一张"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-ink/60 px-2.5 text-white hover:bg-ink/85"
+              onClick={() =>
+                setLightbox((i) =>
+                  i === null ? i : (i + 1) % orderedPreviews.length,
+                )
+              }
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+            <Button
+              aria-label={t("donate.close")}
+              className="absolute right-3 top-3 rounded-full bg-ink/60 px-2 text-white hover:bg-ink/85"
+              onClick={() => setLightbox(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

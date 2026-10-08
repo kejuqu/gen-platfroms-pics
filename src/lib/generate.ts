@@ -1,9 +1,10 @@
 // src/lib/generate.ts
 import type { DeviceMeta } from './tokens'
 import { deviceFileName } from './tokens'
-import { canvasToBlob, downloadBlob } from './download'
-import { EXPORT_SCALE, renderSellerScene } from './render/canvas'
+import { dataURLToBlob, downloadBlob } from './download'
+import { EXPORT_SCALE } from './render/canvas'
 import { extractGradientStops } from './render/color'
+import { renderThreePreview } from './render/three'
 
 export function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -21,15 +22,15 @@ export function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   })
 }
 
-/** 渲染单张卖家预览场景图为 Blob（不下载），供单张与 ZIP 批量共用 */
+/** 渲染单张卖家预览场景图为 Blob（不下载），供单张与 ZIP 批量共用。与页面预览同一渲染，4× 高清。 */
 export async function renderSellerBlob(
   img: HTMLImageElement,
   meta: DeviceMeta,
   originalName: string,
 ): Promise<Blob> {
   const backdrop = extractGradientStops(img)
-  const canvas = renderSellerScene(img, meta.kind, { showTime: true, now: new Date(), backdrop, scale: EXPORT_SCALE })
-  return canvasToBlob(canvas)
+  const url = renderThreePreview(img, meta.kind, { now: new Date(), backdrop, scale: EXPORT_SCALE })
+  return dataURLToBlob(url)
 }
 
 /** 渲染单张卖家预览图并下载（导出尺寸 = EXPORT_SCALE 高清） */

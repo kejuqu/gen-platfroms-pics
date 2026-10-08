@@ -205,7 +205,7 @@ export default function Page() {
           </div>
         )}
       </section>
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-4 pt-6">
         {images.length > 0 && (
           <>
             <div className="space-y-6">
@@ -222,7 +222,7 @@ export default function Page() {
             </div>
             {/* 分页粘性底部 */}
             {pageCount > 1 && (
-              <div className="sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-background/85 px-4 py-2 backdrop-blur">
+              <div className="sticky bottom-0 z-30 -mx-4 mt-6 border-t border-white/10 bg-background/85 px-4 py-3 backdrop-blur rounded-lg">
                 <PaginationBar
                   page={safePage}
                   pageCount={pageCount}

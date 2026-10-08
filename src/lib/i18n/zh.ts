@@ -72,9 +72,7 @@ export const zh = {
   devices: {
     iphone: 'iPhone',
     'ipad-landscape': 'iPad 横屏',
-    'ipad-portrait': 'iPad 竖屏',
-    macbook: 'MacBook',
-    imac: 'iMac',
+    macbook: '电脑',
   },
 }
 

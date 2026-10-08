@@ -1,10 +1,5 @@
 // src/lib/tokens.ts
-export type DeviceKind =
-  | 'iphone'
-  | 'ipad-landscape'
-  | 'ipad-portrait'
-  | 'macbook'
-  | 'imac'
+export type DeviceKind = 'iphone' | 'ipad-landscape' | 'macbook'
 
 export interface DeviceMeta {
   kind: DeviceKind
@@ -13,12 +8,11 @@ export interface DeviceMeta {
   tag: string
 }
 
+/** 卖家预览设备（Three.js 渲染）：手机 / iPad 横屏 / 电脑 */
 export const SELLER_DEVICES: DeviceMeta[] = [
   { kind: 'iphone', label: 'iPhone', tag: 'iphone' },
   { kind: 'ipad-landscape', label: 'iPad 横屏', tag: 'ipad-landscape' },
-  { kind: 'ipad-portrait', label: 'iPad 竖屏', tag: 'ipad-portrait' },
-  { kind: 'macbook', label: 'MacBook', tag: 'macbook' },
-  { kind: 'imac', label: 'iMac', tag: 'imac' },
+  { kind: 'macbook', label: '电脑', tag: 'computer' },
 ]
 
 /** seller-<tag>-<basename>.png */

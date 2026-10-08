@@ -74,8 +74,6 @@ export const en: Dictionary = {
   devices: {
     iphone: 'iPhone',
     'ipad-landscape': 'iPad (landscape)',
-    'ipad-portrait': 'iPad (portrait)',
-    macbook: 'MacBook',
-    imac: 'iMac',
+    macbook: 'Computer',
   },
 }

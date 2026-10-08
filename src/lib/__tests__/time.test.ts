@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { formatLockDate, formatLockTime } from '../time'
 
 describe('formatLockDate', () => {
-  it('输出英文「Weekday, Month D」', () => {
+  it('输出英文「Www Mmm D」（星期缩写 + 月缩写 + 日）', () => {
     // 2026-10-06 是 Tuesday
-    expect(formatLockDate(new Date(2026, 9, 6))).toBe('Tuesday, October 6')
-    expect(formatLockDate(new Date(2026, 4, 20))).toBe('Wednesday, May 20')
+    expect(formatLockDate(new Date(2026, 9, 6, 19, 16))).toBe('Tue Oct 6')
+    expect(formatLockDate(new Date(2026, 4, 20, 13, 14))).toBe('Wed May 20')
   })
 })
 

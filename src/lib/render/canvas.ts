@@ -1,19 +1,22 @@
 // src/lib/render/canvas.ts
+// 锁屏贴图合成（壁纸 cover + 锁屏 UI）——供 Three.js 屏幕纹理使用。
+// 2D 设备整机渲染（paintDevice/renderSellerScene 等）已移除，由 render/three.ts 取代。
 import type { DeviceKind } from '../tokens'
-import type { GradientStops } from './color'
-import { DEVICE_DEFS, scenePadding, sceneDims, type DeviceDef } from './devices'
 import { formatLockDate, formatLockTime } from '../time'
 
 export const EXPORT_SCALE = 4
 
-export interface RenderOptions {
-  /** true=售卖预览版（带时间），false=交付版（纯设备图） */
-  showTime: boolean
-  now: Date
-  /** 不传 = 1（预览尺寸） */
-  scale?: number
-  /** 场景化背景主色渐变（renderSellerScene 必填） */
-  backdrop?: GradientStops
+/** 锁屏贴图超采样倍数：日期/图标文字在高分屏与 4× 导出下保持锐利 */
+const SUPERSAMPLE = 3
+
+/** 参与 Three.js 渲染的设备种类（iPad 竖屏 / iMac 已下线） */
+export type ScreenKind = Extract<DeviceKind, 'iphone' | 'ipad-landscape' | 'macbook'>
+
+export interface ScreenRect {
+  x: number
+  y: number
+  w: number
+  h: number
 }
 
 /** 圆角矩形路径（arcTo 实现，兼容所有 canvas 实现） */
@@ -47,118 +50,131 @@ function drawCover(
 
 const FONT_STACK = '-apple-system, "Helvetica Neue", "Segoe UI", sans-serif'
 
-/** iPhone 状态栏：左侧时间 + 右侧电池/WiFi/信号图标 */
-function drawStatusBar(ctx: CanvasRenderingContext2D, def: DeviceDef, now: Date): void {
-  const { x, y, w, h } = def.screen
-  const barH = Math.max(14, Math.round(h * 0.05))
-  const iconH = barH * 0.42
-  const cy = y + barH / 2
+/** lucide 24×24 描边图标 path 数据（lucide.dev，ISC License）——用 Path2D 绘制到锁屏贴图 */
+const LUCIDE = {
+  signal: 'M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16',
+  wifi: 'M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01',
+  battery: 'M2 7h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2zM22 11v2',
+  flashlight: 'M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12zM13 6v4M11 6v4M12 12v3',
+  camera: 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3zM15 13a3 3 0 1 1-6 0a3 3 0 1 1 6 0',
+}
 
+/** 以描边方式绘制 lucide 图标（path 为 24×24 viewBox） */
+function drawIcon(
+  ctx: CanvasRenderingContext2D,
+  d: string,
+  x: number, y: number, size: number,
+  color: string,
+): void {
+  const path = new Path2D(d)
   ctx.save()
-  ctx.fillStyle = '#ffffff'
-  ctx.strokeStyle = 'rgba(255,255,255,0.9)'
+  ctx.translate(x, y)
+  ctx.scale(size / 24, size / 24)
+  ctx.lineWidth = 2.2
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = color
+  ctx.stroke(path)
+  ctx.restore()
+}
+
+/** iPhone 状态栏：左侧时间 + 右侧信号/WiFi/电池（lucide 图标，dark=浅色壁纸时使用深色） */
+function drawStatusBar(ctx: CanvasRenderingContext2D, screen: ScreenRect, now: Date, dark: boolean): void {
+  const { x, y, w } = screen
+  const barH = Math.max(14, Math.round(screen.h * 0.05))
+  const iconH = barH * 0.52
+  const cy = y + barH / 2
+  const fg = dark ? '#1b1b1f' : '#ffffff'
+  const stroke = dark ? 'rgba(27,27,31,0.85)' : 'rgba(255,255,255,0.9)'
 
   // 左侧时间
+  ctx.save()
   ctx.font = `600 ${Math.round(barH * 0.55)}px ${FONT_STACK}`
   ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = fg
   ctx.fillText(formatLockTime(now), x + w * 0.09, cy)
-
-  // 右侧图标簇（从右往左排）
-  const rx = x + w - w * 0.06
-  const gap = iconH * 0.5
-  // 电池
-  const bw = w * 0.11
-  const bx = rx - bw
-  ctx.lineWidth = 1.5
-  roundedRectPath(ctx, bx, cy - iconH / 2, bw, iconH, iconH * 0.3)
-  ctx.stroke()
-  ctx.fillStyle = '#ffffff'
-  roundedRectPath(ctx, bx + 1.5, cy - iconH / 2 + 1.5, (bw - 3) * 0.75, iconH - 3, iconH * 0.2)
-  ctx.fill()
-  ctx.fillRect(bx + bw + 1.5, cy - iconH * 0.25, 2, iconH * 0.5)
-  // WiFi
-  const wx = bx - gap - iconH
-  ctx.beginPath()
-  ctx.arc(wx + iconH / 2, cy + iconH * 0.3, iconH * 0.12, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.beginPath()
-  ctx.arc(wx + iconH / 2, cy + iconH * 0.3, iconH * 0.45, Math.PI * 1.15, Math.PI * 1.85)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(wx + iconH / 2, cy + iconH * 0.3, iconH * 0.72, Math.PI * 1.15, Math.PI * 1.85)
-  ctx.lineWidth = iconH * 0.14
-  ctx.strokeStyle = '#ffffff'
-  ctx.stroke()
-  // 信号
-  const sx = wx - gap - iconH * 0.9
-  const barHeights = [0.35, 0.55, 0.75, 0.95]
-  const bottom = cy + iconH * 0.45
-  barHeights.forEach((p, i) => {
-    const bh = iconH * p
-    ctx.fillRect(sx + i * (2.5 + 1.5), bottom - bh, 2.5, bh)
-  })
   ctx.restore()
+
+  // 右侧图标簇（从右往左：电池 → WiFi → 信号）
+  const gap = iconH * 0.34
+  const bW = iconH * 1.45
+  const bx = x + w - w * 0.055 - bW
+
+  // 电池：lucide battery 轮廓 + 电量填充
+  ctx.save()
+  ctx.translate(bx, cy - iconH / 2)
+  ctx.scale(bW / 24, iconH / 24)
+  ctx.lineWidth = 2.2
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = stroke
+  ctx.stroke(new Path2D(LUCIDE.battery))
+  ctx.fillStyle = fg
+  roundedRectPath(ctx, 4, 9.5, 11.5 * 0.72, 5, 1.5)
+  ctx.fill()
+  ctx.restore()
+
+  const wifiX = bx - gap - iconH
+  drawIcon(ctx, LUCIDE.wifi, wifiX, cy - iconH / 2, iconH, fg)
+  const sigX = wifiX - gap - iconH * 0.9
+  drawIcon(ctx, LUCIDE.signal, sigX, cy - iconH / 2, iconH, fg)
 
   ctx.textAlign = 'center'
 }
 
-/** iPhone 底部玻璃按钮（手电筒 + 相机）与 home 指示条 */
-function drawLockBottom(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
-  const { x, y, w, h } = def.screen
+/** iPhone 底部玻璃按钮（手电筒 + 相机，lucide 图标）与 home 指示条（dark=浅色壁纸时使用深色） */
+function drawLockBottom(ctx: CanvasRenderingContext2D, screen: ScreenRect, dark: boolean): void {
+  const { x, y, w, h } = screen
   const r = h * 0.045
-  ctx.save()
-  ctx.shadowBlur = 0
+  const pill = dark ? 'rgba(0,0,0,0.16)' : 'rgba(255,255,255,0.28)'
+  const iconColor = dark ? 'rgba(0,0,0,0.72)' : 'rgba(255,255,255,0.9)'
 
   // 两个玻璃圆按钮
+  ctx.save()
+  ctx.shadowBlur = 0
   for (const cx of [x + w * 0.25, x + w * 0.75]) {
     const cyc = y + h * 0.9
     ctx.beginPath()
     ctx.arc(cx, cyc, r, 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(255,255,255,0.28)'
+    ctx.fillStyle = pill
     ctx.fill()
   }
+  ctx.restore()
 
-  // 左：手电筒胶囊
-  const lx = x + w * 0.25
-  const ly = y + h * 0.9
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'
-  roundedRectPath(ctx, lx - r * 0.25, ly - r * 0.45, r * 0.5, r * 0.9, r * 0.25)
-  ctx.fill()
-
-  // 右：相机
-  const cx2 = x + w * 0.75
-  const cy2 = y + h * 0.9
-  ctx.strokeStyle = 'rgba(255,255,255,0.85)'
-  ctx.lineWidth = r * 0.12
-  roundedRectPath(ctx, cx2 - r * 0.48, cy2 - r * 0.36, r * 0.96, r * 0.78, r * 0.2)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(cx2, cy2 + r * 0.03, r * 0.26, 0, Math.PI * 2)
-  ctx.stroke()
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'
-  roundedRectPath(ctx, cx2 - r * 0.16, cy2 - r * 0.5, r * 0.32, r * 0.16, r * 0.06)
-  ctx.fill()
+  // 手电筒 / 相机（lucide 描边图标）
+  const iconSize = r * 1.15
+  const iconY = y + h * 0.9 - iconSize / 2
+  drawIcon(ctx, LUCIDE.flashlight, x + w * 0.25 - iconSize / 2, iconY, iconSize, iconColor)
+  drawIcon(ctx, LUCIDE.camera, x + w * 0.75 - iconSize / 2, iconY, iconSize, iconColor)
 
   // home 指示条
-  roundedRectPath(ctx, x + w * 0.3, y + h * 0.972, w * 0.4, Math.max(2.5, h * 0.008), h * 0.004)
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'
+  ctx.save()
+  roundedRectPath(ctx, x + w * 0.32, y + h * 0.972, w * 0.36, Math.max(2.5, h * 0.008), h * 0.004)
+  ctx.fillStyle = iconColor
   ctx.fill()
   ctx.restore()
 }
 
-/** 锁屏界面：日期+时间（所有设备），iPhone 额外有状态栏与底部按钮 */
-function drawLockScreen(ctx: CanvasRenderingContext2D, def: DeviceDef, now: Date): void {
-  const { x, y, w, h } = def.screen
-  const cx = x + w / 2
+/** 锁屏界面：日期+时间（所有设备），iPhone 额外有状态栏与底部按钮。
+ *  dark=true 时使用深色文字（浅色/白色壁纸场景），保证可读性 */
+export function drawLockScreen(
+  ctx: CanvasRenderingContext2D,
+  kind: DeviceKind,
+  screen: ScreenRect,
+  now: Date,
+  dark = false,
+): void {
+  const { x, y, h } = screen
+  const cx = x + screen.w / 2
   const timeFont = Math.max(12, Math.round(h * 0.085))
   const dateFont = Math.max(8, Math.round(timeFont * 0.36))
 
   ctx.save()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.shadowColor = 'rgba(0,0,0,0.35)'
+  ctx.shadowColor = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.35)'
   ctx.shadowBlur = 6
-  ctx.fillStyle = '#ffffff'
+  ctx.fillStyle = dark ? '#1b1b1f' : '#ffffff'
 
   ctx.font = `600 ${dateFont}px ${FONT_STACK}`
   ctx.fillText(formatLockDate(now), cx, y + h * 0.13)
@@ -167,159 +183,65 @@ function drawLockScreen(ctx: CanvasRenderingContext2D, def: DeviceDef, now: Date
   ctx.fillText(formatLockTime(now), cx, y + h * 0.13 + timeFont * 0.95)
   ctx.restore()
 
-  if (def.kind === 'iphone') {
-    drawStatusBar(ctx, def, now)
-    drawLockBottom(ctx, def)
+  if (kind === 'iphone') {
+    drawStatusBar(ctx, screen, now, dark)
+    drawLockBottom(ctx, screen, dark)
   }
 }
 
-/** iPhone Dynamic Island */
-function drawIsland(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
-  const { x, y, w } = def.screen
-  ctx.save()
-  ctx.fillStyle = '#0a0a0c'
-  roundedRectPath(ctx, x + w / 2 - 32, y + 10, 64, 17, 9)
-  ctx.fill()
-  ctx.restore()
+/** 设备屏幕贴图基准尺寸（CSS px，composeLockScreen 以 2× 超采样输出） */
+export const SCREEN_TEX_SIZE: Record<ScreenKind, { w: number; h: number }> = {
+  iphone: { w: 390, h: 844 },
+  'ipad-landscape': { w: 834, h: 590 },
+  macbook: { w: 900, h: 562 },
 }
 
-/** MacBook 键盘底座 + 摄像头 notch */
-function drawMacBookBase(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
-  const { width, screen } = def
-  const baseY = screen.y + screen.h + 6
-  ctx.save()
-  const grad = ctx.createLinearGradient(0, baseY, 0, baseY + 20)
-  grad.addColorStop(0, '#e8e8ec')
-  grad.addColorStop(1, '#c8c8cf')
-  ctx.fillStyle = grad
-  roundedRectPath(ctx, 6, baseY, width - 12, 20, 6)
-  ctx.fill()
-  ctx.fillStyle = '#b4b4bc'
-  roundedRectPath(ctx, width / 2 - 34, baseY + 3, 68, 13, 4)
-  ctx.fill()
-  ctx.fillStyle = '#0a0a0c'
-  roundedRectPath(ctx, screen.x + screen.w / 2 - 14, screen.y, 28, 10, 0)
-  ctx.fill()
-  ctx.restore()
+/** 屏幕贴图圆角（CSS px，与设备边框圆角匹配，避免壁纸直角露出边框） */
+export const SCREEN_RADIUS: Record<ScreenKind, number> = {
+  iphone: 48,
+  'ipad-landscape': 26,
+  macbook: 18,
 }
 
-/** iMac 下巴 + 支架 */
-function drawImacBase(ctx: CanvasRenderingContext2D, def: DeviceDef): void {
-  const { width, screen } = def
-  const chinY = screen.y + screen.h
-  ctx.save()
-  const grad = ctx.createLinearGradient(0, chinY, 0, chinY + 26)
-  grad.addColorStop(0, '#ececee')
-  grad.addColorStop(1, '#d4d4d9')
-  ctx.fillStyle = grad
-  ctx.fillRect(4, chinY, width - 8, 26)
-  ctx.fillStyle = '#b9b9c0'
-  ctx.beginPath()
-  ctx.arc(width / 2, chinY + 13, 5, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.fillStyle = '#c9c9cf'
-  ctx.beginPath()
-  ctx.moveTo(width / 2 - 26, chinY + 26)
-  ctx.lineTo(width / 2 + 26, chinY + 26)
-  ctx.lineTo(width / 2 + 38, chinY + 42)
-  ctx.lineTo(width / 2 - 38, chinY + 42)
-  ctx.closePath()
-  ctx.fill()
-  ctx.restore()
+/** 采样日期/时钟文字区域的平均亮度（relative luminance）。
+ *  偏亮（白底壁纸）返回 true，调用方应改用深色文字。采样失败时保守返回 false。 */
+function needsDarkText(ctx: CanvasRenderingContext2D, base: { w: number; h: number }): boolean {
+  try {
+    const px = SUPERSAMPLE
+    const sx = Math.round(base.w * px * 0.2)
+    const sy = Math.round(base.h * px * 0.06)
+    const sw = Math.round(base.w * px * 0.6)
+    const sh = Math.round(base.h * px * 0.4)
+    const { data } = ctx.getImageData(sx, sy, sw, sh)
+    let sum = 0
+    let n = 0
+    for (let i = 0; i < data.length; i += 16) {
+      const r = data[i] / 255
+      const g = data[i + 1] / 255
+      const b = data[i + 2] / 255
+      sum += 0.2126 * r + 0.7152 * g + 0.0722 * b
+      n += 1
+    }
+    return n > 0 && sum / n > 0.72
+  } catch {
+    return false
+  }
 }
 
-/**
- * 纯绘制函数：在给定 context 上按 CSS 像素单位绘制整台设备。
- * 所有坐标基于 def（devices.ts），scale 通过 ctx.scale 实现高清导出。
- */
-export function paintDevice(
-  ctx: CanvasRenderingContext2D,
-  def: DeviceDef,
-  img: HTMLImageElement,
-  opts: RenderOptions,
-  scale: number,
-): void {
-  ctx.save()
-  ctx.scale(scale, scale)
-
-  const frameGrad = ctx.createLinearGradient(0, 0, def.width, def.height)
-  frameGrad.addColorStop(0, '#2a2a31')
-  frameGrad.addColorStop(0.5, '#121216')
-  frameGrad.addColorStop(1, '#1e1e24')
-  ctx.fillStyle = frameGrad
-  ctx.fillRect(0, 0, def.width, def.height)
-
-  ctx.save()
-  roundedRectPath(ctx, def.screen.x, def.screen.y, def.screen.w, def.screen.h, def.screenRadius)
+/** 合成锁屏贴图：壁纸 cover + 锁屏 UI，返回 3× 尺寸 canvas（供 Three.js CanvasTexture） */
+export function composeLockScreen(img: HTMLImageElement, kind: ScreenKind, now: Date): HTMLCanvasElement {
+  const base = SCREEN_TEX_SIZE[kind]
+  const canvas = document.createElement('canvas')
+  canvas.width = base.w * SUPERSAMPLE
+  canvas.height = base.h * SUPERSAMPLE
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas 2D context unavailable')
+  ctx.scale(SUPERSAMPLE, SUPERSAMPLE)
+  // 屏幕贴图按设备圆角裁剪：壁纸与锁屏 UI 都被裁成圆角，three.ts 侧开启 transparent 混合
+  roundedRectPath(ctx, 0, 0, base.w, base.h, SCREEN_RADIUS[kind])
   ctx.clip()
-  drawCover(ctx, img, def.screen.x, def.screen.y, def.screen.w, def.screen.h)
-  if (opts.showTime) drawLockScreen(ctx, def, opts.now)
-  ctx.restore()
-
-  ctx.save()
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)'
-  ctx.lineWidth = 1
-  roundedRectPath(ctx, def.screen.x + 0.5, def.screen.y + 0.5, def.screen.w - 1, def.screen.h - 1, def.screenRadius)
-  ctx.stroke()
-  ctx.restore()
-
-  if (def.hasIsland) drawIsland(ctx, def)
-  if (def.base === 'keyboard') drawMacBookBase(ctx, def)
-  if (def.base === 'chin') drawImacBase(ctx, def)
-
-  ctx.restore()
-}
-
-/** 浏览器封装：创建 canvas 并绘制，返回 canvas（预览与下载共用） */
-export function renderDeviceImage(
-  img: HTMLImageElement,
-  kind: DeviceKind,
-  opts: RenderOptions,
-): HTMLCanvasElement {
-  const def = DEVICE_DEFS[kind]
-  const scale = opts.scale ?? 1
-  const canvas = document.createElement('canvas')
-  canvas.width = def.width * scale
-  canvas.height = def.height * scale
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas 2D context unavailable')
-  paintDevice(ctx, def, img, opts, scale)
-  return canvas
-}
-
-/** 场景化卖家预览：主色渐变背景 + 柔和投影 + 居中设备 */
-export function renderSellerScene(
-  img: HTMLImageElement,
-  kind: DeviceKind,
-  opts: RenderOptions & { backdrop: GradientStops },
-): HTMLCanvasElement {
-  const def = DEVICE_DEFS[kind]
-  const scale = opts.scale ?? 1
-  const { padX, padY } = scenePadding(def)
-  const dims = sceneDims(def)
-  const canvas = document.createElement('canvas')
-  canvas.width = dims.width * scale
-  canvas.height = dims.height * scale
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas 2D context unavailable')
-
-  ctx.save()
-  ctx.scale(scale, scale)
-  const grad = ctx.createLinearGradient(0, 0, dims.width, dims.height)
-  grad.addColorStop(0, `rgb(${opts.backdrop.from.join(',')})`)
-  grad.addColorStop(1, `rgb(${opts.backdrop.to.join(',')})`)
-  ctx.fillStyle = grad
-  ctx.fillRect(0, 0, dims.width, dims.height)
-  ctx.restore()
-
-  ctx.save()
-  ctx.scale(scale, scale)
-  const offY = Math.max(4, Math.round(def.height * 0.015))
-  ctx.translate(padX, padY + offY)
-  ctx.shadowColor = 'rgba(15,15,20,0.4)'
-  ctx.shadowBlur = Math.round(def.width * 0.05)
-  ctx.shadowOffsetY = Math.round(offY * 0.6)
-  paintDevice(ctx, def, img, { ...opts, scale: 1 }, 1)
-  ctx.restore()
+  drawCover(ctx, img, 0, 0, base.w, base.h)
+  const dark = needsDarkText(ctx, base)
+  drawLockScreen(ctx, kind, { x: 0, y: 0, w: base.w, h: base.h }, now, dark)
   return canvas
 }

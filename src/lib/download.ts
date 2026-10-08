@@ -15,3 +15,9 @@ export function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('canvas.toBlob failed'))), 'image/png')
   })
 }
+
+/** PNG dataURL → Blob（Three.js 渲染导出用） */
+export async function dataURLToBlob(dataURL: string): Promise<Blob> {
+  const res = await fetch(dataURL)
+  return res.blob()
+}
