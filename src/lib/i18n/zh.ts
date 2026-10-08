@@ -1,6 +1,21 @@
 export const zh = {
   app: { title: '🖼️ 设备预览图生成工具' },
-  header: { usage: '本月已生成 {count} / {limit} 张', donate: '☕ 打赏支持' },
+  header: {
+    usage: '本月已生成 {count} / {limit} 张',
+    donate: '☕ 打赏支持',
+    downloadAll: '下载全部 ZIP',
+  },
+  toolbar: {
+    selectPage: '全选本页',
+    selected: '已选 {count} 项',
+    downloadSelected: '下载选中 ZIP',
+    deleteSelected: '删除选中',
+  },
+  pagination: {
+    prev: '上一页',
+    next: '下一页',
+    page: '第 {page} / {total} 页',
+  },
   lang: { label: '语言', zh: '中', en: 'EN' },
   upload: {
     title: '点击选择或拖拽多张壁纸到这里',
@@ -27,6 +42,12 @@ export const zh = {
     deleteFailed: '删除失败，请重试',
     loadFailed: '本地数据读取失败',
     downloadFailed: '下载失败，请重试',
+    zipping: '正在打包 {done}/{total}…',
+    zipDone: 'ZIP 已生成，开始下载',
+    zipFailed: '打包失败，请重试',
+    zipSkipped: '{count} 张生成失败已跳过',
+    batchDeleted: '已删除 {count} 张图片',
+    batchDeleteFailed: '{count} 张删除失败',
   },
   donate: {
     title: '☕ 打赏支持',
@@ -40,6 +61,12 @@ export const zh = {
   confirmDelete: {
     title: '删除图片',
     description: '确定删除「{name}」吗？此操作不可恢复。',
+    cancel: '取消',
+    confirm: '确认删除',
+  },
+  confirmDeleteBatch: {
+    title: '删除图片',
+    description: '确定删除选中的 {count} 张图片吗？此操作不可恢复。',
     cancel: '取消',
     confirm: '确认删除',
   },

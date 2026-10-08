@@ -2,7 +2,22 @@ import type { Dictionary } from './zh'
 
 export const en: Dictionary = {
   app: { title: '🖼️ Device Mockup Studio' },
-  header: { usage: 'Generated {count} / {limit} this month', donate: '☕ Buy me a coffee' },
+  header: {
+    usage: 'Generated {count} / {limit} this month',
+    donate: '☕ Buy me a coffee',
+    downloadAll: 'Download all (ZIP)',
+  },
+  toolbar: {
+    selectPage: 'Select this page',
+    selected: '{count} selected',
+    downloadSelected: 'Download selected (ZIP)',
+    deleteSelected: 'Delete selected',
+  },
+  pagination: {
+    prev: 'Prev',
+    next: 'Next',
+    page: 'Page {page} / {total}',
+  },
   lang: { label: 'Language', zh: '中', en: 'EN' },
   upload: {
     title: 'Click to select or drag & drop wallpapers here',
@@ -29,6 +44,12 @@ export const en: Dictionary = {
     deleteFailed: 'Delete failed, please retry',
     loadFailed: 'Failed to read local data',
     downloadFailed: 'Download failed, please retry',
+    zipping: 'Zipping {done}/{total}…',
+    zipDone: 'ZIP ready, downloading',
+    zipFailed: 'Zipping failed, please retry',
+    zipSkipped: '{count} image(s) skipped',
+    batchDeleted: 'Deleted {count} image(s)',
+    batchDeleteFailed: 'Failed to delete {count} image(s)',
   },
   donate: {
     title: '☕ Buy me a coffee',
@@ -42,6 +63,12 @@ export const en: Dictionary = {
   confirmDelete: {
     title: 'Delete image',
     description: 'Delete "{name}"? This cannot be undone.',
+    cancel: 'Cancel',
+    confirm: 'Delete',
+  },
+  confirmDeleteBatch: {
+    title: 'Delete images',
+    description: 'Delete the selected {count} image(s)? This cannot be undone.',
     cancel: 'Cancel',
     confirm: 'Delete',
   },
