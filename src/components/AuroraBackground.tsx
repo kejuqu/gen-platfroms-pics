@@ -7,5 +7,5 @@ export function AuroraBackground() {
       <div className="aurora-blob aurora-4" />
       <div className="aurora-curtain" />
     </div>
-  )
+  );
 }

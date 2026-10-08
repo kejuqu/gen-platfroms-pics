@@ -83,7 +83,12 @@ body {
   height: 45vmax;
   left: -18vmax;
   top: -16vmax;
-  background: radial-gradient(ellipse, rgba(16, 185, 129, 0.4), rgba(45, 212, 191, 0.16) 55%, transparent 72%);
+  background: radial-gradient(
+    ellipse,
+    rgba(16, 185, 129, 0.4),
+    rgba(45, 212, 191, 0.16) 55%,
+    transparent 72%
+  );
   animation: aurora-drift-1 32s ease-in-out infinite alternate;
 }
 
@@ -93,7 +98,12 @@ body {
   height: 50vmax;
   right: -20vmax;
   top: -12vmax;
-  background: radial-gradient(ellipse, rgba(244, 63, 94, 0.35), rgba(249, 115, 22, 0.14) 55%, transparent 72%);
+  background: radial-gradient(
+    ellipse,
+    rgba(244, 63, 94, 0.35),
+    rgba(249, 115, 22, 0.14) 55%,
+    transparent 72%
+  );
   animation: aurora-drift-2 40s ease-in-out infinite alternate;
 }
 
@@ -103,7 +113,12 @@ body {
   height: 50vmax;
   left: 4vmax;
   bottom: -24vmax;
-  background: radial-gradient(ellipse, rgba(5, 150, 105, 0.32), rgba(16, 185, 129, 0.12) 55%, transparent 72%);
+  background: radial-gradient(
+    ellipse,
+    rgba(5, 150, 105, 0.32),
+    rgba(16, 185, 129, 0.12) 55%,
+    transparent 72%
+  );
   animation: aurora-drift-3 36s ease-in-out infinite alternate;
 }
 
@@ -113,7 +128,12 @@ body {
   height: 45vmax;
   right: 0;
   bottom: -18vmax;
-  background: radial-gradient(ellipse, rgba(190, 18, 60, 0.35), rgba(244, 63, 94, 0.13) 55%, transparent 72%);
+  background: radial-gradient(
+    ellipse,
+    rgba(190, 18, 60, 0.35),
+    rgba(244, 63, 94, 0.13) 55%,
+    transparent 72%
+  );
   animation: aurora-drift-4 30s ease-in-out infinite alternate;
 }
 
@@ -139,28 +159,50 @@ body {
 }
 
 @keyframes aurora-drift-1 {
-  from { transform: translate(0, 0) rotate(0deg) scale(1); }
-  to { transform: translate(12vw, 8vh) rotate(6deg) scale(1.15); }
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate(12vw, 8vh) rotate(6deg) scale(1.15);
+  }
 }
 
 @keyframes aurora-drift-2 {
-  from { transform: translate(0, 0) rotate(0deg) scale(1.05); }
-  to { transform: translate(-10vw, 10vh) rotate(-5deg) scale(0.95); }
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1.05);
+  }
+  to {
+    transform: translate(-10vw, 10vh) rotate(-5deg) scale(0.95);
+  }
 }
 
 @keyframes aurora-drift-3 {
-  from { transform: translate(0, 0) rotate(0deg) scale(1); }
-  to { transform: translate(9vw, -9vh) rotate(4deg) scale(1.1); }
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate(9vw, -9vh) rotate(4deg) scale(1.1);
+  }
 }
 
 @keyframes aurora-drift-4 {
-  from { transform: translate(0, 0) rotate(0deg) scale(0.95); }
-  to { transform: translate(-8vw, -7vh) rotate(-6deg) scale(1.12); }
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(0.95);
+  }
+  to {
+    transform: translate(-8vw, -7vh) rotate(-6deg) scale(1.12);
+  }
 }
 
 @keyframes aurora-sway {
-  from { transform: rotate(-8deg) translateX(-4%); opacity: 0.8; }
-  to { transform: rotate(-4deg) translateX(4%); opacity: 1; }
+  from {
+    transform: rotate(-8deg) translateX(-4%);
+    opacity: 0.8;
+  }
+  to {
+    transform: rotate(-4deg) translateX(4%);
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

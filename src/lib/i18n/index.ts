@@ -1,32 +1,33 @@
-import { zh, type Dictionary } from './zh'
-import { en } from './en'
+import { zh, type Dictionary } from "./zh";
+import { en } from "./en";
 
-export type { Dictionary }
-export type Locale = 'zh' | 'en'
+export type { Dictionary };
+export type Locale = "zh" | "en";
 
-export const dictionaries: Record<Locale, Dictionary> = { zh, en }
+export const dictionaries: Record<Locale, Dictionary> = { zh, en };
 
 /** localStorage 键：记住用户语言选择 */
-export const STORAGE_KEY = 'mockup-locale'
+export const STORAGE_KEY = "mockup-locale";
 
 /** 浏览器语言 → Locale；zh* → zh，其他 → en，缺省 → zh */
 export function detectLocale(lang?: string): Locale {
-  if (!lang) return 'zh'
-  return lang.toLowerCase().startsWith('zh') ? 'zh' : 'en'
+  if (!lang) return "zh";
+  return lang.toLowerCase().startsWith("zh") ? "zh" : "en";
 }
 
 /** 卡片时间戳等本地格式化用的 BCP-47 tag */
 export function dateLocale(locale: Locale): string {
-  return locale === 'zh' ? 'zh-CN' : 'en-US'
+  return locale === "zh" ? "zh-CN" : "en-US";
 }
 
-type Vars = Record<string, string | number>
+type Vars = Record<string, string | number>;
 
 function walk(dict: unknown, path: string): unknown {
-  return path.split('.').reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
-    return undefined
-  }, dict)
+  return path.split(".").reduce<unknown>((acc, key) => {
+    if (acc && typeof acc === "object")
+      return (acc as Record<string, unknown>)[key];
+    return undefined;
+  }, dict);
 }
 
 /**
@@ -39,18 +40,19 @@ export function translate(
   path: string,
   vars?: Vars,
 ): string {
-  let value = walk(dict, path) as string | undefined
-  if (typeof value !== 'string') value = walk(fallback, path) as string | undefined
-  if (typeof value !== 'string') return path
+  let value = walk(dict, path) as string | undefined;
+  if (typeof value !== "string")
+    value = walk(fallback, path) as string | undefined;
+  if (typeof value !== "string") return path;
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
-      value = value.replaceAll(`{${k}}`, () => String(v))
+      value = value.replaceAll(`{${k}}`, () => String(v));
     }
   }
-  return value
+  return value;
 }
 
 /** 供非组件环境使用；组件内请用 useI18n */
 export function getDictionary(locale: Locale): Dictionary {
-  return locale === 'zh' ? zh : en
+  return locale === "zh" ? zh : en;
 }

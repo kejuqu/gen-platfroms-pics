@@ -129,7 +129,9 @@ export function ImageCard({
       if (e.key === "Escape") setLightbox(null);
       if (e.key === "ArrowLeft")
         setLightbox((i) =>
-          i === null ? i : (i - 1 + orderedPreviews.length) % orderedPreviews.length,
+          i === null
+            ? i
+            : (i - 1 + orderedPreviews.length) % orderedPreviews.length,
         );
       if (e.key === "ArrowRight")
         setLightbox((i) => (i === null ? i : (i + 1) % orderedPreviews.length));
@@ -156,7 +158,10 @@ export function ImageCard({
       );
     }
     return (
-      <figure key={p.kindKey} className={`group relative min-w-0 ${extraClass}`}>
+      <figure
+        key={p.kindKey}
+        className={`group relative min-w-0 ${extraClass}`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={p.url}
@@ -187,11 +192,14 @@ export function ImageCard({
     );
   }
 
-  const lightboxCurrent = lightbox !== null ? orderedPreviews[lightbox] : undefined;
+  const lightboxCurrent =
+    lightbox !== null ? orderedPreviews[lightbox] : undefined;
 
   function handleLightboxDownload() {
     if (!lightboxCurrent || lightboxCurrent.kind !== "ok") return;
-    const meta = SELLER_DEVICES.find((m) => m.kind === lightboxCurrent.kindKey)!;
+    const meta = SELLER_DEVICES.find(
+      (m) => m.kind === lightboxCurrent.kindKey,
+    )!;
     runDownload(async () => {
       if (!img) return;
       await downloadDeviceImage(img, meta, image.name);
@@ -398,11 +406,10 @@ export function ImageCard({
               aria-label="上一张"
               className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-ink/60 px-2.5 text-white hover:bg-ink/85"
               onClick={() =>
-                setLightbox(
-                  (i) =>
-                    i === null
-                      ? i
-                      : (i - 1 + orderedPreviews.length) % orderedPreviews.length,
+                setLightbox((i) =>
+                  i === null
+                    ? i
+                    : (i - 1 + orderedPreviews.length) % orderedPreviews.length,
                 )
               }
             >

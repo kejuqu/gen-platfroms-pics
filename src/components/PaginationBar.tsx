@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import { useI18n } from '@/lib/i18n/context'
+import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n/context";
 
 export function PaginationBar({
   page,
   pageCount,
   onChange,
 }: {
-  page: number
-  pageCount: number
-  onChange: (page: number) => void
+  page: number;
+  pageCount: number;
+  onChange: (page: number) => void;
 }) {
-  const { t } = useI18n()
+  const { t } = useI18n();
 
-  if (pageCount <= 1) return null
+  if (pageCount <= 1) return null;
 
   return (
     <div className="flex items-center justify-center gap-3">
@@ -25,10 +25,10 @@ export function PaginationBar({
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
       >
-        {t('pagination.prev')}
+        {t("pagination.prev")}
       </Button>
       <span className="text-sm text-muted-foreground">
-        {t('pagination.page', { page, total: pageCount })}
+        {t("pagination.page", { page, total: pageCount })}
       </span>
       <Button
         variant="outline"
@@ -37,8 +37,8 @@ export function PaginationBar({
         disabled={page >= pageCount}
         onClick={() => onChange(page + 1)}
       >
-        {t('pagination.next')}
+        {t("pagination.next")}
       </Button>
     </div>
-  )
+  );
 }

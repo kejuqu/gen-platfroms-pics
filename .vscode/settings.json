@@ -1,0 +1,16 @@
+{
+  // 保存时用 Prettier 格式化，并自动修复 ESLint 可修复的问题
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  // 保存时不格式化锁文件（避免无意义的 diff）
+  "prettier.ignorePath": ".prettierignore"
+}

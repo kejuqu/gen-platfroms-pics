@@ -71,10 +71,7 @@ export function DonateModal({
         </div>
         <div className="flex gap-2">
           <DialogClose asChild>
-            <Button
-              variant="outline"
-              className="flex-1 rounded-full"
-            >
+            <Button variant="outline" className="flex-1 rounded-full">
               {t("donate.nextTime")}
             </Button>
           </DialogClose>
