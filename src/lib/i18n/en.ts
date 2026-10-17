@@ -27,6 +27,7 @@ export const en: Dictionary = {
     aria: "Upload images",
   },
   empty: "No images yet — upload some wallpapers to get started～",
+  backToTop: "Back to top",
   card: {
     sellerSet: "Download all previews ({count})",
     deliver: "Download delivery image",

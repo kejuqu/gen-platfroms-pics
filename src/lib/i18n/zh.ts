@@ -25,6 +25,7 @@ export const zh = {
     aria: "上传图片",
   },
   empty: "还没有图片，先上传几张壁纸吧～",
+  backToTop: "返回顶部",
   card: {
     sellerSet: "下载全部预览图（{count} 张）",
     deliver: "下载交付图",

@@ -9,6 +9,7 @@ import { ImageCard } from "@/components/ImageCard";
 import { DonateModal } from "@/components/DonateModal";
 import { PaginationBar } from "@/components/PaginationBar";
 import { SelectionToolbar } from "@/components/SelectionToolbar";
+import { BackToTop } from "@/components/BackToTop";
 import { useI18n } from "@/lib/i18n/context";
 import {
   addImage,
@@ -189,6 +190,7 @@ export default function Page() {
           <UploadZone onFiles={handleFiles} />
         </div>
       </div>
+      <BackToTop />
       <section className="sticky top-0 z-30 mx-auto max-w-6xl px-4 ">
         {images.length > 0 && (
           <div className="mt-3">
