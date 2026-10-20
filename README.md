@@ -9,11 +9,14 @@ SERVER_HOST / SERVER_USER	服务器 IP 和 SSH 用户名
 SSH_PRIVATE_KEY	可以在自己的电脑上 ssh-keygen -t ed25519 -f ~/.ssh/github_deploy -N "" 生成，公钥追加到服务器的 ~/.ssh/authorized_keys，私钥内容贴进去 SSH_PRIVATE_KEY 的 value 里去
 
 # 装 Docker
-curl -fsSL https://get.docker.com | sh
+```
+sudo apt update
+sudo apt install docker.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
 
-# 放 compose 文件
-> mkdir -p /opt/app && cd /opt/app
-# 把仓库里的 docker-compose.yml 拷过来（workflow 的 sed 会自动改镜像 tag）
+docker -v
+```
 
 # Nginx 反代（/etc/nginx/conf.d/one-dragon.conf）
 

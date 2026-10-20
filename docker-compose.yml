@@ -1,5 +1,5 @@
-# 部署在腾讯云服务器上使用的 compose 文件
-# 注意：把镜像名替换成你的 Docker Hub 用户名（与 deploy.yml 中保持一致）
+# 由 GitHub Actions 自动上传到服务器的 /opt/app/ 并启动
+# 镜像 tag 由 workflow 部署时自动改为具体的 commit 版本
 services:
   app:
     image: <你的DockerHub用户名>/device-mockup-studio:latest
