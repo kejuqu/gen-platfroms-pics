@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.git
+.github
+docs
+*.md
+!README.md
+.dockerignore
+Dockerfile
+docker-compose.yml
+tsconfig.tsbuildinfo
+.vscode
+.idea

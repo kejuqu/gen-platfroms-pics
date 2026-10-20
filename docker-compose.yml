@@ -1,0 +1,15 @@
+# 部署在腾讯云服务器上使用的 compose 文件
+# 注意：把镜像名替换成你的 Docker Hub 用户名（与 deploy.yml 中保持一致）
+services:
+  app:
+    image: <你的DockerHub用户名>/device-mockup-studio:latest
+    container_name: device-mockup-studio
+    restart: unless-stopped
+    ports:
+      # 只绑定本机回环地址，由 Nginx 反向代理对外提供 80/443
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
