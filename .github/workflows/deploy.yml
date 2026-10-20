@@ -44,7 +44,9 @@ jobs:
       # 用 commit sha 作为镜像 tag，可追溯、可回滚
       - name: get image tag
         id: meta
-        run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "SERVER_USER: ${{ secrets.SERVER_USER }}"
 
       - uses: docker/setup-buildx-action@v3
 
