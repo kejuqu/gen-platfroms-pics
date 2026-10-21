@@ -3,10 +3,8 @@ name: Test, Build & Deploy
 on:
   push:
     branches: [main]
-  # 手动触发：Actions 页面点 "Run workflow"
   workflow_dispatch:
 
-# 镜像标签 & 仓库地址集中定义，方便修改
 # Docker Hub 为默认仓库，无需指定 registry
 env:
   IMAGE: lekequ/device-mockup-studio
