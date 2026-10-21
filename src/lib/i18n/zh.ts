@@ -83,6 +83,11 @@ export const zh = {
     "ipad-landscape": "iPad 横屏",
     macbook: "电脑",
   },
+  footer: {
+    email: "联系邮箱",
+    icp: "浙ICP备2026087691号",
+    beianUrl: "https://beian.miit.gov.cn/#/Integrated/index",
+  },
 };
 
 export type Dictionary = typeof zh;

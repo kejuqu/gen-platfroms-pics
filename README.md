@@ -34,3 +34,7 @@ server {
 然后 certbot --nginx -d one-dragon.cn 配 HTTPS，腾讯云防火墙放行 80/443。
 
 之后每次 git push 到 GitHub main 分支：测试 → 构建镜像 → 推 TCR → 服务器自动更新，Vercel 同步部署，一条流水线两个平台。
+```
+git config push.default upstream
+git config remote.pushDefault origin   # 默认仍推 GitHub
+```

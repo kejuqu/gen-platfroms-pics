@@ -85,4 +85,9 @@ export const en: Dictionary = {
     "ipad-landscape": "iPad (landscape)",
     macbook: "Computer",
   },
+  footer: {
+    email: "Contact",
+    icp: "浙ICP备2026087691号",
+    beianUrl: "https://beian.miit.gov.cn/#/Integrated/index",
+  },
 };
