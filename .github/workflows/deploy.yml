@@ -41,22 +41,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 临时调试：打印 secret 私钥的指纹（不泄露内容），用于和本地/服务器比对
-      - name: debug key fingerprint
-        run: |
-          printf '%s\n' "$SSH_KEY" > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
-          ssh-keygen -y -f /tmp/deploy_key > /tmp/deploy_key.pub
-          ssh-keygen -lf /tmp/deploy_key.pub
-        env:
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
       # 用 commit sha 作为镜像 tag，可追溯、可回滚
       - name: get image tag
         id: meta
-        run: |
-          echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-          echo "SERVER_USER: ${{ secrets.SERVER_USER }}"
+        run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v3
 
