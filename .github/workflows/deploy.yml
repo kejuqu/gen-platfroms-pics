@@ -102,7 +102,3 @@ jobs:
             docker compose pull
             docker compose up -d
             docker image prune -f
-
-
-
-            ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes deploy@123.206.104.16 "echo 连接成功"
