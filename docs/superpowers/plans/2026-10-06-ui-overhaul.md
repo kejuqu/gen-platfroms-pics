@@ -1759,7 +1759,7 @@ export default function Page() {
   return (
     <div className="flex-1">
       <Header usageCount={usageCount} onDonate={() => setDonateOpen(true)} />
-      <main className="mx-auto max-w-6xl px-4 pt-6">
+      <main className="mx-auto max-w-6xl px-4 pt-6 min-h-[80vh]">
         <UploadZone onFiles={handleFiles} />
         {images.length > 0 && (
           <div className="mt-6 columns-1 gap-4 sm:columns-2 xl:columns-3">

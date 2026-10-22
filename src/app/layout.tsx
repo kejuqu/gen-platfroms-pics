@@ -20,8 +20,11 @@ export default function RootLayout({
       <body className="flex flex-1 flex-col">
         <AuroraBackground />
         <I18nProvider>
-          <div className="flex flex-1 flex-col">{children}</div>
-          <SiteFooter />
+          <div className="flex flex-1 flex-col">
+            {children}
+
+            <SiteFooter />
+          </div>
         </I18nProvider>
         <Toaster />
       </body>

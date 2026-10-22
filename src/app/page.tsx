@@ -207,7 +207,7 @@ export default function Page() {
           </div>
         )}
       </section>
-      <main className="mx-auto max-w-6xl px-4 pt-6">
+      <main className="mx-auto max-w-6xl px-4 pt-6 min-h-[72dvh]">
         {images.length > 0 && (
           <>
             <div className="space-y-6">
