@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className="dark">
-      <body className="flex min-h-screen flex-col">
+      <body className="flex flex-1 flex-col">
         <AuroraBackground />
         <I18nProvider>
           <div className="flex flex-1 flex-col">{children}</div>

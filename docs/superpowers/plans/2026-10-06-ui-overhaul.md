@@ -1757,7 +1757,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="flex-1">
       <Header usageCount={usageCount} onDonate={() => setDonateOpen(true)} />
       <main className="mx-auto max-w-6xl px-4 pt-6">
         <UploadZone onFiles={handleFiles} />

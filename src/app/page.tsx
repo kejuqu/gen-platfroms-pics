@@ -176,7 +176,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="flex-1">
       {/* 顶部粘性区：标题栏 + 上传区 + 选择工具栏，滚动时始终可见 */}
       <div className="border-b border-white/10 bg-background/85 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 pb-4">
